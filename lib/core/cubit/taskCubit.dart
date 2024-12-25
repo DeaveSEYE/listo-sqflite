@@ -5,6 +5,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:listo/core/api/service.dart';
 import 'package:listo/core/utils/task.dart';
 import 'package:listo/database/database_helper.dart';
+import 'package:listo/core/global/global_state.dart'; // Import du gestionnaire global
 
 class Data {
   final List<Task> tasks;
@@ -15,29 +16,35 @@ class Data {
 
 class TaskCubit extends Cubit<Data> {
   final DatabaseHelper _databaseHelper = DatabaseHelper();
-  // final StreamController<void> _syncController = StreamController<void>();
-
+  final apiService = ApiService(); // Instancie ApiService
   TaskCubit() : super(Data([])) {
     _fetchTasks(); // Charger les tâches lors de l'initialisation
     _syncLocalDataWithApi(); // Start syncing local data to API periodically
   }
 
   Future<void> _fetchTasks() async {
-    print('Vérification de la connexion Internet...');
-    final internetAvailable = await isInternetAvailable();
+    // print('Vérification de la connexion Internet...');
+    // final internetAvailable = await isInternetAvailable();
 
-    if (internetAvailable) {
-      print('Connexion Internet disponible.');
+    // if (internetAvailable) {
+    // print('Connexion Internet disponible.');
+    if (!GlobalState().firstInitialize) {
+      print("DEBUT PROCESS : RECUPERATION DES TACHES DEPUIS L'API");
+      // print(
+      //     "FIRST INITIALIZE DANS _fetchTasks : ${GlobalState().firstInitialize}");
       await _fetchTasksFromApi();
     } else {
-      print('Pas de connexion Internet. Chargement depuis la base locale...');
       await _fetchTasksFromLocal();
     }
+    // } else {
+    // print('Pas de connexion Internet. Chargement depuis la base locale...');
+
+    // }
   }
 
   Future<void> _fetchTasksFromApi() async {
     try {
-      final fetchedTasks = await ApiService.fetchTasks();
+      final fetchedTasks = await apiService.fetchTasks();
       // Effacer les anciennes tâches dans la base locale
       await _databaseHelper.clearTasks();
       // Sauvegarder les tâches récupérées dans la base locale
@@ -45,18 +52,29 @@ class TaskCubit extends Cubit<Data> {
         await _databaseHelper.insertTask(task.toJson());
       }
       emit(Data(fetchedTasks));
-      print('Tâches récupérées depuis l’API et sauvegardées localement.');
+      // Récupérer et afficher les tâches présentes dans la base locale
+      // final localTasks = await _databaseHelper.fetchTasks();
+      // for (var task in localTasks) {
+      //   print("Tâche locale : ${task.toString()}");
+      // }
+      GlobalState().firstInitialize = true; // Mettre à jour l'état global
+      print(
+          'FIN PROCESS : Tâches récupérées depuis l’API et sauvegardées localement.');
     } catch (e) {
       print('Erreur lors de la récupération des tâches depuis l’API : $e');
     }
   }
 
   Future<void> _fetchTasksFromLocal() async {
+    print(
+        "FIRST INITIALIZE DANS _fetchTasksFromLocal : ${GlobalState().firstInitialize}");
     try {
       final localTasks = await _databaseHelper.fetchTasks();
+      // print(localTasks);
       final tasks = localTasks.map((e) => Task.fromJson(e)).toList();
       emit(Data(tasks));
       print('Tâches récupérées depuis la base locale.');
+      // print(localTasks);
     } catch (e) {
       print('Erreur lors du chargement des tâches depuis la base locale : $e');
     }
@@ -70,7 +88,7 @@ class TaskCubit extends Cubit<Data> {
 
   // Sync local data with API periodically
   void _syncLocalDataWithApi() {
-    Timer.periodic(Duration(minutes: 5), (timer) async {
+    Timer.periodic(Duration(minutes: 1), (timer) async {
       if (await isInternetAvailable()) {
         print(
             "Internet connecté. Tentative de synchronisation des données locales...");
@@ -85,13 +103,15 @@ class TaskCubit extends Cubit<Data> {
       final tasksToSync =
           await _databaseHelper.fetchTasksToSync(); // Fetch unsynced tasks
       for (var task in tasksToSync) {
+        print(task.title);
+        print(task.isNew);
         if (task.isNew) {
-          await ApiService.addTask(task.toJson()); // Add new task to API
+          await apiService.addTask(task.toJson()); // Add new task to API
         } else if (task.isUpdated) {
-          await ApiService.updateTask(
+          await apiService.updateTask(
               task.id, task.toJson()); // Update task on API
         } else if (task.isDeleted) {
-          await ApiService.deleteTask(task.id); // Delete task from API
+          await apiService.deleteTask(task.id); // Delete task from API
         }
         // Mark the task as synced after successful API sync
         await _databaseHelper.markTaskAsSynced(task.id);

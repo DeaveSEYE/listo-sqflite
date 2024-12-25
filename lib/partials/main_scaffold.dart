@@ -64,7 +64,7 @@ class _MainScaffoldState extends State<MainScaffold> {
         // Ce callback est appelé lorsque l'état du cubit est mis à jour
         // Par exemple, après un appel à reload()
         if (state.tasks.isEmpty) {
-          print("Aucune tâche disponible");
+          // print("Aucune tâche disponible");
         }
       }, child: BlocBuilder<TaskCubit, Data>(
         builder: (context, state) {

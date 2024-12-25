@@ -27,6 +27,7 @@ class BuildTaskItem extends StatefulWidget {
 }
 
 class _BuildTaskItemState extends State<BuildTaskItem> {
+  final apiService = ApiService(); // Instancie ApiService
   late bool isChecked;
   List<Categorie> categories = []; // Liste des catégories
   bool isLoading = true;
@@ -35,20 +36,26 @@ class _BuildTaskItemState extends State<BuildTaskItem> {
   Future<void> _fetchCategories() async {
     try {
       final fetchedCategories = await ApiService.fetchCategories();
-      setState(() {
-        categories = fetchedCategories;
-        isLoading = false; // Fin du chargement
-      });
+      if (mounted) {
+        setState(() {
+          categories = fetchedCategories;
+          isLoading = false; // Fin du chargement
+        });
+      }
     } catch (e) {
-      setState(() {
-        isLoading = false; // En cas d'erreur, mettre isLoading à false
-      });
+      if (mounted) {
+        setState(() {
+          isLoading = false; // En cas d'erreur, mettre isLoading à false
+        });
+      }
       // Afficher un message d'erreur
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-            content:
-                Text('Impossible de charger la liste des categories : $e')),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Impossible de charger la liste des catégories : $e'),
+          ),
+        );
+      }
     }
   }
 
@@ -75,7 +82,7 @@ class _BuildTaskItemState extends State<BuildTaskItem> {
               task: widget.task, // Tâche vide pour ajouter une nouvelle tâche
               onTaskAdded: (taskData) async {
                 // Call your API to add the task
-                await ApiService.addTask(taskData);
+                await apiService.addTask(taskData);
               },
             ).showAddTaskModal();
           },
@@ -91,7 +98,7 @@ class _BuildTaskItemState extends State<BuildTaskItem> {
           onTap: (CompletionHandler handler) async {
             await handler(true); // Action de suppression
             try {
-              await ApiService.deleteTask(widget.task.id);
+              await apiService.deleteTask(widget.task.id);
               setState(() {
                 widget.onDelete(widget.index);
               });

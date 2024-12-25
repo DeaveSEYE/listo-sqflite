@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:listo/core/global/global_state.dart';
 import 'package:listo/core/utils/task.dart';
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
@@ -60,6 +61,7 @@ class DatabaseHelper {
         createdAt DATE,
         updatedAt DATE, 
         dueDate DATE,
+        is_synced BOOLEAN,
         isNew BOOLEAN,
         isUpdated BOOLEAN,
         isDeleted BOOLEAN
@@ -95,26 +97,41 @@ class DatabaseHelper {
   Future<List<Task>> fetchTasksToSync() async {
     final db = await database;
     final List<Map<String, dynamic>> maps =
-        await db.query('tasks', where: 'is_synced = "false"');
+        await db.query('tasks', where: 'is_synced = 0');
     return List.generate(maps.length, (i) => Task.fromJson(maps[i]));
   }
 
   // Mark a task as synced after successful API sync
   Future<void> markTaskAsSynced(String taskId) async {
     final db = await database;
-    await db.update('tasks', {'is_synced': true},
+    await db.update('tasks', {'isUpdated': 1},
         where: 'id = ?', whereArgs: [taskId]);
   }
 
   // Insert a new task
   Future<void> insertTask(Map<String, dynamic> task) async {
     final db = await database;
+    // Avant d'insérer dans la base locale, vérifiez ou générez un ID
+    if (task['id'] == null || task['id'].isEmpty) {
+      task['id'] = "listo"; // Génère un ID unique
+    }
+    task['is_synced'] = 0;
+    task['isNew'] = 1;
+    task['isUpdated'] = 0;
+    task['isDeleted'] = 0;
+    task['createdAt'] = '2024-12-02T15:00:00.000Z';
+    task['updatedAt'] = '2024-12-02T15:00:00.000Z';
     await db.insert('tasks', task);
-    print("Tâche insérée : $task");
+    if (GlobalState().firstInitialize) {
+      print("INSERTION DES TACHES DANS LA BASE LOCAL EFFECTUER AVEC SUCCESS");
+    } else {
+      // print("Tâche insérée : $task");
+    }
   }
 
   // Update an existing task
   Future<void> updateTask(Map<String, dynamic> task) async {
+    print(task);
     final db = await database;
     await db.update('tasks', task, where: 'id = ?', whereArgs: [task['id']]);
   }
@@ -123,5 +140,6 @@ class DatabaseHelper {
   Future<void> deleteTask(String taskId) async {
     final db = await database;
     await db.delete('tasks', where: 'id = ?', whereArgs: [taskId]);
+    print("TACHE AVEC ID  : ${taskId} SUPPRIMER AVEC SUCCESS DE LA BASE LOCAL");
   }
 }

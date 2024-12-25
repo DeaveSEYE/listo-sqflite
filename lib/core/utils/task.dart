@@ -41,15 +41,15 @@ class Task {
       'categorie': categorie,
       'description': description,
       'priority': priority, // Utilisation d'une chaîne au lieu d'enum
-      'isChecked': isChecked ? 1 : 0, // SQLite ne supporte pas les booléens
+      'isChecked': isChecked ? 1 : 0, // Convertir en entier pour la base
       'categorieColor':
           categorieColor.value.toString(), // Stockage de la couleur
       'createdAt': createdAt,
       'updatedAt': updatedAt,
       'dueDate': dueDate,
-      'isNew': isNew,
-      'isUpdated': isUpdated,
-      'isDeleted': isDeleted,
+      'isNew': isNew ? 1 : 0, // Convertir en entier pour la base
+      'isUpdated': isUpdated ? 1 : 0, // Convertir en entier pour la base
+      'isDeleted': isDeleted ? 1 : 0, // Convertir en entier pour la base
     };
   }
 
@@ -64,11 +64,11 @@ class Task {
       dueDate: json['dueDate'],
       categorie: json['categorie'],
       categorieColor: getColorFromName(json['categorieColor']),
-      isChecked: (json['isChecked'] == 1), // Conversion en booléen
+      isChecked: json['isChecked'] == 1, // Convertir en booléen
       priority: json['priority'], // Utilisation directe de la chaîne
-      isNew: json['isNew'] ?? false,
-      isUpdated: json['isUpdated'] ?? false,
-      isDeleted: json['isDeleted'] ?? false,
+      isNew: json['isNew'] == 1, // Convertir en booléen
+      isUpdated: json['isUpdated'] == 1, // Convertir en booléen
+      isDeleted: json['isDeleted'] == 1, // Convertir en booléen
     );
   }
 }

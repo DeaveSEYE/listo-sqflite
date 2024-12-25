@@ -22,6 +22,7 @@ class TaskModal {
   });
 
   void showAddTaskModal() {
+    final apiService = ApiService(); // Instancie ApiService
     final titleController = TextEditingController(text: task?.title ?? '');
     final descriptionController =
         TextEditingController(text: task?.description ?? '');
@@ -126,18 +127,19 @@ class TaskModal {
                                 'title': titleController.text,
                                 'categorie': selectedCategory,
                                 'description': descriptionController.text,
-                                // 'createdAt': selectedDate?.toIso8601String(),
-                                // 'updatedAt': selectedDate?.toIso8601String(),
+                                'createdAt': selectedDate?.toIso8601String(),
+                                'updatedAt': selectedDate?.toIso8601String(),
                                 'dueDate': selectedDate?.toIso8601String(),
                                 "priority": prior,
                                 "isChecked": false,
                                 "categorieColor": 'red'
                                 // "categorieColor": colorName
                               };
+                              print(taskData);
                               if (isEditing) {
                                 print('EDITION DE TACHE');
                                 try {
-                                  await ApiService.updateTask(
+                                  await apiService.updateTask(
                                       task!.id, taskData);
                                   Navigator.pop(context);
                                   // Mise à jour de la liste des tâches
@@ -159,7 +161,7 @@ class TaskModal {
                                 }
                               } else {
                                 try {
-                                  await ApiService.addTask(taskData);
+                                  await apiService.addTask(taskData);
                                   Navigator.pop(context);
                                   // Mise à jour de la liste des tâches
                                   //  await _fetchTasks();
