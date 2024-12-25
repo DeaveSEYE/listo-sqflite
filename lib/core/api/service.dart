@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'package:listo/core/cubit/taskCubit.dart';
 import 'package:listo/core/utils/categorie.dart';
 import 'package:listo/core/utils/task.dart';
 
@@ -8,9 +7,12 @@ class ApiService {
   // static const String taskApiUrl = 'http://localhost:3000/task';
   //static const String categorieApiUrl = 'http://localhost:3000/categorie';
 
-  static const String taskApiUrl = 'https://taskapi-yz3z.onrender.com/task';
+  // static const String taskApiUrl = 'https://taskapi-yz3z.onrender.com/task';
+  // static const String categorieApiUrl =
+  //     'https://taskapi-yz3z.onrender.com/categorie';
+  static const String taskApiUrl = 'https://task-api-firebase.vercel.app/tasks';
   static const String categorieApiUrl =
-      'https://taskapi-yz3z.onrender.com/categorie';
+      'https://task-api-firebase.vercel.app/categories';
   // Fetch tasks from the API
   static Future<List<Task>> fetchTasks() async {
     final response = await http.get(Uri.parse(taskApiUrl));
@@ -35,7 +37,7 @@ class ApiService {
   }
 
   // delete task to the API
-  static Future<void> deleteTask(int taskId) async {
+  static Future<void> deleteTask(String taskId) async {
     final apiUrl = '$taskApiUrl/$taskId';
 
     try {
@@ -57,9 +59,9 @@ class ApiService {
 
   // update task to the API
   static Future<void> updateTask(
-      int taskId, Map<String, dynamic> taskData) async {
+      String taskId, Map<String, dynamic> taskData) async {
     final apiUrl = '$taskApiUrl/$taskId';
-
+    print(taskData);
     try {
       final response = await http.patch(
         Uri.parse(apiUrl),

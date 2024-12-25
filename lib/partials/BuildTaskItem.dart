@@ -15,12 +15,12 @@ class BuildTaskItem extends StatefulWidget {
   final Function(int) onUpdate;
 
   const BuildTaskItem({
-    Key? key,
+    super.key,
     required this.task,
     required this.index,
     required this.onDelete,
     required this.onUpdate,
-  }) : super(key: key);
+  });
 
   @override
   _BuildTaskItemState createState() => _BuildTaskItemState();
@@ -28,53 +28,56 @@ class BuildTaskItem extends StatefulWidget {
 
 class _BuildTaskItemState extends State<BuildTaskItem> {
   late bool isChecked;
-  List<Categorie> categories = [];
-  bool isLoading = false;
+  List<Categorie> categories = []; // Liste des catégories
+  bool isLoading = true;
 
-  @override
-  void initState() {
-    super.initState();
-    _fetchCategories();
-    isChecked = widget.task.isChecked;
-  }
-
+  // Fonction de récupération des catégories
   Future<void> _fetchCategories() async {
-    if (categories.isNotEmpty) return;
-    setState(() => isLoading = true);
-
     try {
       final fetchedCategories = await ApiService.fetchCategories();
       setState(() {
         categories = fetchedCategories;
+        isLoading = false; // Fin du chargement
       });
-    } catch (error) {
+    } catch (e) {
+      setState(() {
+        isLoading = false; // En cas d'erreur, mettre isLoading à false
+      });
+      // Afficher un message d'erreur
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Erreur lors du chargement des catégories : $error'),
-        ),
+            content:
+                Text('Impossible de charger la liste des categories : $e')),
       );
-    } finally {
-      setState(() => isLoading = false);
     }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchCategories(); // Charger les catégories lors de l'initialisation
+    isChecked = widget.task.isChecked;
   }
 
   @override
   Widget build(BuildContext context) {
     return SwipeActionCell(
-      key: ValueKey(widget.task.id),
+      key: ValueKey(widget.task),
       leadingActions: [
         SwipeAction(
-          onTap: (_) async {
-            await TaskModal(
+          onTap: (handler) {
+            // Gestion de l'action de mise à jour ici si nécessaire
+            TaskModal(
               context: context,
-              taskCubit: context.read<TaskCubit>(),
+              taskCubit:
+                  context.read<TaskCubit>(), // Pass the TaskCubit instance
               categories: categories,
-              task: widget.task,
+              task: widget.task, // Tâche vide pour ajouter une nouvelle tâche
               onTaskAdded: (taskData) async {
+                // Call your API to add the task
                 await ApiService.addTask(taskData);
               },
-            )
-              ..showAddTaskModal(); // Notice the double-dot operator for method chaining.
+            ).showAddTaskModal();
           },
           content: const Padding(
             padding: EdgeInsets.all(8.0),
@@ -86,22 +89,26 @@ class _BuildTaskItemState extends State<BuildTaskItem> {
       trailingActions: [
         SwipeAction(
           onTap: (CompletionHandler handler) async {
-            await handler(true);
+            await handler(true); // Action de suppression
             try {
               await ApiService.deleteTask(widget.task.id);
-              widget.onDelete(widget.index);
+              setState(() {
+                widget.onDelete(widget.index);
+              });
               NotificationHelper.showFlushbar(
+                // ignore: use_build_context_synchronously
                 context: context,
-                message: "Tâche supprimée avec succès",
+                message: "Tâche Supprimée avec succès",
                 type: NotificationType.success,
               );
               context.read<TaskCubit>().reload();
-            } catch (error) {
+            } catch (e) {
               NotificationHelper.showFlushbar(
+                // ignore: use_build_context_synchronously
                 context: context,
                 message:
-                    "Une erreur est survenue lors de la suppression de la tâche",
-                type: NotificationType.error,
+                    "Une erreur est survenue lors de la suppression de la tache",
+                type: NotificationType.success,
               );
             }
           },
@@ -120,7 +127,9 @@ class _BuildTaskItemState extends State<BuildTaskItem> {
               isChecked ? Icons.check_box : Icons.check_box_outline_blank,
             ),
             onPressed: () {
-              setState(() => isChecked = !isChecked);
+              setState(() {
+                isChecked = !isChecked;
+              });
             },
           ),
           title: Text(
@@ -145,9 +154,7 @@ class _BuildTaskItemState extends State<BuildTaskItem> {
                 child: Text(
                   widget.task.categorie,
                   style: const TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                  ),
+                      color: Colors.white, fontWeight: FontWeight.bold),
                 ),
               ),
               const SizedBox(width: 8),
@@ -158,8 +165,8 @@ class _BuildTaskItemState extends State<BuildTaskItem> {
             ],
           ),
           onTap: () {
-            showTaskDetails(
-                context, widget.task, categories, context.read<TaskCubit>());
+            showTaskDetails(context, widget.task, categories,
+                context.read<TaskCubit>()); // Passer les catégories
           },
         ),
       ),
@@ -167,23 +174,8 @@ class _BuildTaskItemState extends State<BuildTaskItem> {
   }
 }
 
-Color _getPriorityColor(String priority) {
-  switch (priority) {
-    case "moyenne":
-      return Colors.yellow;
-    case "eleve":
-      return Colors.red;
-    default:
-      return Colors.green;
-  }
-}
-
 void showTaskDetails(
-  BuildContext context,
-  Task task,
-  List<Categorie> categories,
-  TaskCubit taskCubit,
-) {
+    BuildContext context, Task task, List<Categorie> categories, tCubit) {
   showModalBottomSheet(
     context: context,
     isScrollControlled: true,
@@ -200,43 +192,84 @@ void showTaskDetails(
               children: [
                 Text(
                   task.title,
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 22,
-                  ),
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 22),
                   overflow: TextOverflow.ellipsis,
                 ),
-                const SizedBox(height: 8),
+                SizedBox(height: 8),
                 Text(
                   task.description,
-                  style: const TextStyle(fontSize: 16),
+                  style: TextStyle(fontSize: 16),
                   overflow: TextOverflow.ellipsis,
                   maxLines: 3,
                 ),
-                const SizedBox(height: 16),
+                SizedBox(height: 16),
                 Row(
                   children: [
                     Icon(
                       Icons.flag,
                       color: _getPriorityColor(task.priority),
                     ),
-                    const SizedBox(width: 8),
+                    SizedBox(width: 8),
                     Text(
-                      "Priorité : ${task.priority}",
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w500,
-                      ),
+                      _getPriorityText(task.priority),
+                      style:
+                          TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
                     ),
                   ],
                 ),
-                const SizedBox(height: 12),
+                SizedBox(height: 12),
                 Text(
-                  'Date : ${task.dueDate}',
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w500,
-                  ),
+                  'Date: ${task.dueDate}',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+                ),
+                SizedBox(height: 12),
+                Row(
+                  children: [
+                    Text(
+                      task.isChecked ? 'Tâche Terminée' : 'Tâche en Attente',
+                      style:
+                          TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+                    ),
+                  ],
+                ),
+                SizedBox(height: 24),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    ElevatedButton(
+                      onPressed: () {
+                        Navigator.pop(context);
+                      },
+                      style: ElevatedButton.styleFrom(
+                        foregroundColor: Colors.white,
+                        backgroundColor: Colors.grey,
+                        padding:
+                            EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                      ),
+                      child: Text('Fermer'),
+                    ),
+                    SizedBox(width: 16),
+                    ElevatedButton(
+                      onPressed: () {
+                        Navigator.pop(context);
+                        TaskModal(
+                          context: context,
+                          taskCubit: tCubit, // Pass the TaskCubit instance
+                          categories: categories,
+                          task:
+                              task, // Tâche vide pour ajouter une nouvelle tâche
+                          onTaskAdded: (taskData) async {},
+                        ).showAddTaskModal();
+                      },
+                      style: ElevatedButton.styleFrom(
+                        foregroundColor: Colors.white,
+                        backgroundColor: Colors.blue,
+                        padding:
+                            EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                      ),
+                      child: Text('Modifier'),
+                    ),
+                  ],
                 ),
               ],
             ),
@@ -245,4 +278,26 @@ void showTaskDetails(
       );
     },
   );
+}
+
+Color _getPriorityColor(String priority) {
+  switch (priority) {
+    case "moyenne":
+      return Colors.yellow;
+    case "eleve":
+      return Colors.red;
+    default:
+      return Colors.green;
+  }
+}
+
+String _getPriorityText(String priority) {
+  switch (priority) {
+    case "moyenne":
+      return 'Pririté : Moyenne';
+    case "eleve":
+      return 'Pririté : Haute';
+    default:
+      return 'Pririté : Basse';
+  }
 }

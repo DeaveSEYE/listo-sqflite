@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 
 // Categorie model
 class Categorie {
-  final int id;
+  final String id;
   final String categorie;
   final Color categorieColor;
   final String createdAt;

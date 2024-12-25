@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 
 // Task model
 class Task {
-  final int id;
+  final String id;
   final String title;
   final String categorie;
   final String description;

@@ -26,7 +26,7 @@ class TaskModal {
     final descriptionController =
         TextEditingController(text: task?.description ?? '');
     // final TextEditingController dateController = TextEditingController();
-    final TextEditingController priorityController = TextEditingController();
+    // final TextEditingController priorityController = TextEditingController();
 
     Color? selectedCategoryColor;
     String? selectedCategory;
@@ -86,7 +86,7 @@ class TaskModal {
                             onPressed: () async {
                               String colorName =
                                   getColorName(selectedCategoryColor!);
-                              //print(colorName); // Cela renverra "Orange"
+                              // print(colorName); // Cela renverra "Orange"
 
                               // Vérifier si les champs sont valides
                               if (titleController.text.isEmpty ||
@@ -126,12 +126,14 @@ class TaskModal {
                                 'title': titleController.text,
                                 'categorie': selectedCategory,
                                 'description': descriptionController.text,
+                                // 'createdAt': selectedDate?.toIso8601String(),
+                                // 'updatedAt': selectedDate?.toIso8601String(),
                                 'dueDate': selectedDate?.toIso8601String(),
                                 "priority": prior,
                                 "isChecked": false,
-                                "categorieColor": colorName
+                                "categorieColor": 'red'
+                                // "categorieColor": colorName
                               };
-
                               if (isEditing) {
                                 print('EDITION DE TACHE');
                                 try {
@@ -255,12 +257,8 @@ class TaskModal {
                                           onPressed: () {
                                             setState(() {
                                               selectedFlagColor = color;
-                                              priorityController.text =
-                                                  selectedFlagColor.toString();
-
-                                              // Définir automatiquement la priorité
                                               prior = priorityFromColorString(
-                                                  priorityController.text);
+                                                  color); // Get priority based on selected color
                                               print('Priorité : $prior');
                                             });
                                             Navigator.pop(context);
@@ -353,16 +351,16 @@ class TaskModal {
     }
   }
 
-  String priorityFromColorString(String colorString) {
-    String colorName = getColorNameFromToString(colorString);
-
-    return (colorName == "red")
-        ? "eleve"
-        : (colorName == "green")
-            ? "basse"
-            : (colorName == "yellow")
-                ? "moyenne"
-                : "inconnue";
+  String priorityFromColorString(Color color) {
+    if (color == Colors.red) {
+      return "eleve"; // High priority
+    } else if (color == Colors.yellow) {
+      return "moyenne"; // Medium priority
+    } else if (color == Colors.green) {
+      return "basse"; // Low priority
+    } else {
+      return "inconnue"; // Unknown priority
+    }
   }
 
   Color flagFromPriority(String priority) {
@@ -371,8 +369,10 @@ class TaskModal {
         return Colors.red;
       case 'moyenne':
         return Colors.yellow;
-      default:
+      case 'basse':
         return Colors.green;
+      default:
+        return Colors.grey; // Default flag color
     }
   }
 

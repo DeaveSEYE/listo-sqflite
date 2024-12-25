@@ -1,4 +1,3 @@
-import 'dart:io' show Platform;
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:listo/core/utils/task.dart';
 import 'package:path/path.dart';
@@ -51,7 +50,7 @@ class DatabaseHelper {
     // Création des tables
     await db.execute('''
       CREATE TABLE tasks (
-         id INTEGER PRIMARY KEY AUTOINCREMENT,
+         id TEXT,
         title TEXT NOT NULL,
         categorie TEXT,
         description TEXT,
@@ -101,7 +100,7 @@ class DatabaseHelper {
   }
 
   // Mark a task as synced after successful API sync
-  Future<void> markTaskAsSynced(int taskId) async {
+  Future<void> markTaskAsSynced(String taskId) async {
     final db = await database;
     await db.update('tasks', {'is_synced': true},
         where: 'id = ?', whereArgs: [taskId]);
@@ -121,7 +120,7 @@ class DatabaseHelper {
   }
 
   // Delete a task
-  Future<void> deleteTask(int taskId) async {
+  Future<void> deleteTask(String taskId) async {
     final db = await database;
     await db.delete('tasks', where: 'id = ?', whereArgs: [taskId]);
   }
