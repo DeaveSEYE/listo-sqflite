@@ -117,7 +117,7 @@ class TaskCubit extends Cubit<Data> {
     emit(Data(state.tasks, isLoading: false));
   }
 
-  // Sync local data with API periodically
+  // Sync vers l'api toute les 5minutes
   void _syncLocalDataWithApi() {
     Timer.periodic(Duration(minutes: 5), (timer) async {
       if (await isInternetAvailable()) {
@@ -130,7 +130,6 @@ class TaskCubit extends Cubit<Data> {
     });
   }
 
-  // Method to sync local changes to the API
   Future<void> _syncDataToApi() async {
     // Si une opération est déjà en cours, on retourne immédiatement
     while (_isFetchingTasks) {
@@ -141,17 +140,17 @@ class TaskCubit extends Cubit<Data> {
     _isFetchingTasks = true;
     try {
       final tasksToSync = await _databaseHelper
-          .fetchTasksToSync(); // recuperer les taches non synchronisés unsynced tasks
+          .fetchTasksToSync(); // recuperer les taches non synchronisés
       print('NOMBRE TACHE A SYNC');
       print(tasksToSync.length);
       for (var task in tasksToSync) {
         print(task.toJson());
         if (task.isNew == true) {
           // print(task.toJson());
-          await apiService.addTask(task.toJson()); // Add new task to API
+          await apiService.addTask(task.toJson());
         }
         //  else if (task.isNew == true && task.isUpdated == true) {
-        //   await apiService.addTask(task.toJson()); // Add new task to API
+        //   await apiService.addTask(task.toJson());
         //   task.id = GlobalState().newIdFromApi;
         //   await apiService.updateTask(
         //       task.id, task.toJson()); // Update task on API
@@ -162,9 +161,9 @@ class TaskCubit extends Cubit<Data> {
           await apiService.updateTask(
               task.id, task.toJson()); // Update task on API
         } else if (task.isDeleted == true) {
-          await apiService.deleteTask(task.toJson()); // Delete task from API
+          await apiService.deleteTask(task.toJson());
         }
-        // Mark the task as synced after successful API sync
+
         await _databaseHelper.markTaskAsSynced(task.id);
       }
       print('Données locales synchronisées avec l’API.');
@@ -179,23 +178,19 @@ class TaskCubit extends Cubit<Data> {
   Future<void> createTask(Task task) async {
     task.isNew = true;
     await _databaseHelper.insertTask(task.toJson());
-    // After insertion, you can handle other operations if needed.
   }
 
   Future<void> updateTask(Task task) async {
     task.isUpdated = true;
     await _databaseHelper.updateTask(task.toJson());
-    // After update, you can handle other operations if needed.
   }
 
   Future<void> deleteTask(Task task) async {
     task.isDeleted = true;
     await _databaseHelper.deleteTask(task.id);
-    // After deletion, you can handle other operations if needed.
   }
 }
 
-// Check for internet availability
 Future<bool> isInternetAvailable() async {
   if (kIsWeb) {
     try {

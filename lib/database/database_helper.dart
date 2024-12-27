@@ -94,7 +94,6 @@ class DatabaseHelper {
     print("NETTOYAGE DE LA BASE LOCALE TERMINER");
   }
 
-  // Fetch tasks that need to be synced (new, updated, or deleted)
   Future<List<Task>> fetchTasksToSync() async {
     final db = await database;
     final List<Map<String, dynamic>> maps =
@@ -102,14 +101,12 @@ class DatabaseHelper {
     return List.generate(maps.length, (i) => Task.fromJson(maps[i]));
   }
 
-  // Mark a task as synced after successful API sync
   Future<void> markTaskAsSynced(String taskId) async {
     final db = await database;
     await db.update('tasks', {'is_synced': 1},
         where: 'id = ?', whereArgs: [taskId]);
   }
 
-  // Insert a new task
   Future<void> insertTask(Map<String, dynamic> task) async {
     final db = await database;
 
@@ -143,14 +140,12 @@ class DatabaseHelper {
     }
   }
 
-  // Update an existing task
   Future<void> updateTask(Map<String, dynamic> task) async {
     print(task);
     final db = await database;
     await db.update('tasks', task, where: 'id = ?', whereArgs: [task['id']]);
   }
 
-  // Delete a task
   Future<void> deleteTask(String taskId) async {
     final db = await database;
     await db.delete('tasks', where: 'id = ?', whereArgs: [taskId]);

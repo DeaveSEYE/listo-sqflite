@@ -10,7 +10,7 @@ class ApiService {
   static const String taskApiUrl = 'https://task-api-firebase.vercel.app/tasks';
   static const String categorieApiUrl =
       'https://task-api-firebase.vercel.app/categories';
-  // Fetch tasks from the API
+
   Future<List<Task>> fetchTasks() async {
     if (GlobalState().firstInitialize) {
       print("Utilisation de la base de données locale pour les tâches.");
@@ -27,7 +27,6 @@ class ApiService {
     }
   }
 
-  // Add a new task to the API
   Future<void> addTask(Map<String, dynamic> taskData) async {
     print(GlobalState().firstInitialize);
     if (GlobalState().firstInitialize && GlobalState().apiInitialize == false) {
@@ -81,7 +80,6 @@ class ApiService {
     }
   }
 
-  // delete task to the API
   Future<void> deleteTask(Map<String, dynamic> task) async {
     if (GlobalState().firstInitialize && GlobalState().apiInitialize == false) {
       print(
@@ -122,7 +120,6 @@ class ApiService {
     }
   }
 
-  // update task to the API
   Future<void> updateTask(String taskId, Map<String, dynamic> taskData) async {
     print(
         "GlobalState().firstInitialize  : ${GlobalState().firstInitialize}  & GlobalState().apiInitialize ; ${GlobalState().apiInitialize}");
@@ -186,7 +183,6 @@ class ApiService {
     }
   }
 
-  // Add a new category to the API
   static Future<void> addCategory(Map<String, dynamic> categoryData) async {
     final response = await http.post(
       Uri.parse(categorieApiUrl),
