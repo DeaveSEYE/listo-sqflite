@@ -7,12 +7,6 @@ import 'package:listo/database/database_helper.dart'; // Import du gestionnaire 
 
 class ApiService {
   final DatabaseHelper _databaseHelper = DatabaseHelper();
-  // static const String taskApiUrl = 'http://localhost:3000/task';
-  //static const String categorieApiUrl = 'http://localhost:3000/categorie';
-
-  // static const String taskApiUrl = 'https://taskapi-yz3z.onrender.com/task';
-  // static const String categorieApiUrl =
-  //     'https://taskapi-yz3z.onrender.com/categorie';
   static const String taskApiUrl = 'https://task-api-firebase.vercel.app/tasks';
   static const String categorieApiUrl =
       'https://task-api-firebase.vercel.app/categories';
@@ -23,8 +17,6 @@ class ApiService {
       final localTasks = await _databaseHelper.fetchTasks();
       return localTasks.map((e) => Task.fromJson(e)).toList();
     } else {
-      // print('Connexion Internet disponible.');
-      // print("Utilisation de l'API distante pour les tâches.");
       final response = await http.get(Uri.parse(taskApiUrl));
       if (response.statusCode == 200) {
         final List<dynamic> taskData = json.decode(response.body);
@@ -55,8 +47,6 @@ class ApiService {
     } else {
       print("Ajout de la tâche via l'API distante.");
       taskData['isChecked'] = taskData['isChecked'] == false ? false : true;
-      // taskData['isChecked'] = taskData['isChecked'] == false ? 0 : 1;
-      // print(taskData['isChecked']);
       List<String> keysToRemove = [
         'is_synced',
         'isNew',
@@ -92,7 +82,6 @@ class ApiService {
   }
 
   // delete task to the API
-  // Future<void> addTask(Map<String, dynamic> taskData) async {
   Future<void> deleteTask(Map<String, dynamic> task) async {
     if (GlobalState().firstInitialize && GlobalState().apiInitialize == false) {
       print(

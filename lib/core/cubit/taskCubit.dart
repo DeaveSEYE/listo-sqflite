@@ -3,6 +3,7 @@ import 'dart:io' show InternetAddress;
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:listo/core/api/service.dart';
+import 'package:listo/core/utils/colorConverter.dart';
 import 'package:listo/core/utils/task.dart';
 import 'package:listo/database/database_helper.dart';
 import 'package:listo/core/global/global_state.dart'; // Import du gestionnaire global
@@ -33,18 +34,10 @@ class TaskCubit extends Cubit<Data> {
     // Activer le verrou
     _isFetchingTasks = true;
 
-    // print('ICI');
-    // _syncDataToApi();
-    // print('Vérification de la connexion Internet...');
-    // final internetAvailable = await isInternetAvailable();
-
     try {
-      // if (internetAvailable) {
-      // print('Connexion Internet disponible.');
       if (!GlobalState().firstInitialize) {
         print("DEBUT PROCESS : RECUPERATION DES TACHES DEPUIS L'API");
-        // print(
-        //     "FIRST INITIALIZE DANS _fetchTasks : ${GlobalState().firstInitialize}");
+
         await _fetchTasksFromApi();
         print("FIN PROCESS : RECUPERATION DES TACHES DEPUIS L'API");
       } else {
@@ -52,10 +45,6 @@ class TaskCubit extends Cubit<Data> {
         await _fetchTasksFromLocal();
         print("FIN PROCESS : RECUPERATION DES TACHES DEPUIS BASE LOCAL");
       }
-      // } else {
-      // print('Pas de connexion Internet. Chargement depuis la base locale...');
-
-      // }
     } catch (e) {
       print("Erreur lors de l'exécution de _fetchTasks : $e");
     } finally {
@@ -69,10 +58,28 @@ class TaskCubit extends Cubit<Data> {
       final fetchedTasks = await apiService.fetchTasks();
       // Effacer les anciennes tâches dans la base locale
       await _databaseHelper.clearTasks();
+
       // Sauvegarder les tâches récupérées dans la base locale
       for (var task in fetchedTasks) {
+        // Obtenir la valeur entière de la couleur
+        int colorInt = task.categorieColor.value;
+
+        // Convertir la valeur en nom de couleur
+        String colorName = ColorConverter.getColorName(colorInt);
+        // print(colorName);
+        // List<String> keysToRemove = ['categorieColor'];
+
+        // for (var key in keysToRemove) {
+        //   task.toJson().remove(key);
+        // }
+        task.toJson().addAll({
+          'categorieColor': colorName,
+        });
+        print(task.toJson());
+        // Insérer dans la base de données
         await _databaseHelper.insertTask(task.toJson());
       }
+
       emit(Data(fetchedTasks));
       GlobalState().firstInitialize = true; // Mettre à jour l'état global
       print(
@@ -112,7 +119,7 @@ class TaskCubit extends Cubit<Data> {
 
   // Sync local data with API periodically
   void _syncLocalDataWithApi() {
-    Timer.periodic(Duration(minutes: 1), (timer) async {
+    Timer.periodic(Duration(minutes: 5), (timer) async {
       if (await isInternetAvailable()) {
         print(
             "Internet connecté. Tentative de synchronisation des données locales...");

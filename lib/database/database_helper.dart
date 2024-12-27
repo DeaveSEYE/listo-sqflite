@@ -131,6 +131,8 @@ class DatabaseHelper {
     // task.addAll({
     //   'isDeleted': 0,
     // });
+    // print(task['categorieColor'].toString());
+
     await db.insert('tasks', task);
     if (GlobalState().firstInitialize) {
       print(

@@ -3,11 +3,11 @@ import 'package:flutter/material.dart';
 
 // Task model
 class Task {
-  late final String id;
+  final String id;
   final String title;
   final String categorie;
   final String description;
-  final Color categorieColor;
+  Color categorieColor;
   String priority; // Utilisation d'une chaîne pour remplacer l'enum
   bool isChecked;
   final String createdAt;
