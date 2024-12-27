@@ -41,8 +41,10 @@ class ApiService {
     if (GlobalState().firstInitialize && GlobalState().apiInitialize == false) {
       print("Ajout de la tâche dans la base locale.");
       taskData['isChecked'] = taskData['isChecked'] == false ? 0 : 1;
+      GlobalState().localDBAutoIncrement++;
+      String newId = "listo${GlobalState().localDBAutoIncrement}";
       taskData.addAll({
-        'id': "listo",
+        'id': newId,
         'is_synced': 0,
         'isNew': 1,
         'isUpdated': 0,
@@ -53,6 +55,7 @@ class ApiService {
     } else {
       print("Ajout de la tâche via l'API distante.");
       taskData['isChecked'] = taskData['isChecked'] == false ? false : true;
+      // taskData['isChecked'] = taskData['isChecked'] == false ? 0 : 1;
       // print(taskData['isChecked']);
       List<String> keysToRemove = [
         'is_synced',
@@ -71,6 +74,18 @@ class ApiService {
       );
       if (response.statusCode != 201) {
         throw Exception('Failed to add task: ${response.body}');
+      } else {
+        final responseData = json.decode(response.body);
+        final String idFromApi = responseData['id']; // Récupération de l'ID
+        print('Task added successfully with ID: $idFromApi');
+        taskData['isChecked'] = taskData['isChecked'] == false ? 0 : 1;
+        taskData['id'] = idFromApi;
+        GlobalState().newIdFromApi = idFromApi;
+        taskData['isNew'] = 0;
+        taskData['is_synced'] = 0;
+        print("daouda");
+        print(taskData);
+        await _databaseHelper.updateTask(taskData);
       }
       GlobalState().apiInitialize = false;
     }
@@ -87,7 +102,7 @@ class ApiService {
       task['isChecked'] = task['isChecked'] == false ? 0 : 1;
       task.addAll({
         'is_synced': 0,
-        'isNew': 1,
+        'isNew': 0,
         'isUpdated': 0,
         'isDeleted': 1,
       });
@@ -97,22 +112,31 @@ class ApiService {
       print(
           "FIRST INITIALIZE dans deleteTask : ${GlobalState().firstInitialize}");
       print("Suppression de la tâche via l'API distante.");
-      final apiUrl = "$taskApiUrl/$task['id']";
+      final apiUrl = "$taskApiUrl/${task['id']}";
       final response = await http.delete(
         Uri.parse(apiUrl),
         headers: {'Content-Type': 'application/json'},
       );
+      print(response.statusCode);
       if (response.statusCode != 200 && response.statusCode != 204) {
         throw Exception('Failed to delete task: ${response.body}');
       } else {
         print(
             "TACHE AVEC ID  : ${task['id']} SUPPRIMER AVEC SUCCESS VIA L'API'");
+        task['isNew'] = 0;
+        task['isDeleted'] = 0;
+        task.addAll({
+          'is_synced': 0,
+        });
+        await _databaseHelper.updateTask(task);
       }
     }
   }
 
   // update task to the API
   Future<void> updateTask(String taskId, Map<String, dynamic> taskData) async {
+    print(
+        "GlobalState().firstInitialize  : ${GlobalState().firstInitialize}  & GlobalState().apiInitialize ; ${GlobalState().apiInitialize}");
     if (GlobalState().firstInitialize && GlobalState().apiInitialize == false) {
       print("Mise à jour de la tâche dans la base locale.");
       taskData['isChecked'] = taskData['isChecked'] == false ? 0 : 1;
@@ -138,17 +162,27 @@ class ApiService {
       for (var key in keysToRemove) {
         taskData.remove(key);
       }
+      taskData['isChecked'] = taskData['isChecked'] == false ? false : true;
       // print('LALALA');
       // print(taskData);
+      print(taskId);
+
       final apiUrl = '$taskApiUrl/$taskId';
+      print(apiUrl);
       final response = await http.put(
         Uri.parse(apiUrl),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode(taskData),
       );
+      print(response.statusCode);
       if (response.statusCode != 200 && response.statusCode != 204) {
         throw Exception('Failed to update task: ${response.body}');
+      } else {
+        taskData['isUpdated'] = 0;
+        taskData['isChecked'] = taskData['isChecked'] == false ? 0 : 1;
+        await _databaseHelper.updateTask(taskData);
       }
+      // GlobalState().apiInitialize = false;
     }
   }
 

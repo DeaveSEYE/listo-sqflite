@@ -118,23 +118,39 @@ class TaskCubit extends Cubit<Data> {
             "Internet connecté. Tentative de synchronisation des données locales...");
         GlobalState().apiInitialize = true;
         await _syncDataToApi();
+        GlobalState().apiInitialize = false;
       }
     });
   }
 
   // Method to sync local changes to the API
   Future<void> _syncDataToApi() async {
+    // Si une opération est déjà en cours, on retourne immédiatement
+    while (_isFetchingTasks) {
+      await Future.delayed(Duration(milliseconds: 100));
+    }
+
+    // Activer le verrou
+    _isFetchingTasks = true;
     try {
-      final tasksToSync =
-          await _databaseHelper.fetchTasksToSync(); // Fetch unsynced tasks
+      final tasksToSync = await _databaseHelper
+          .fetchTasksToSync(); // recuperer les taches non synchronisés unsynced tasks
       print('NOMBRE TACHE A SYNC');
       print(tasksToSync.length);
       for (var task in tasksToSync) {
-        // print(task.toJson());
+        print(task.toJson());
         if (task.isNew == true) {
           // print(task.toJson());
           await apiService.addTask(task.toJson()); // Add new task to API
-        } else if (task.isUpdated == true) {
+        }
+        //  else if (task.isNew == true && task.isUpdated == true) {
+        //   await apiService.addTask(task.toJson()); // Add new task to API
+        //   task.id = GlobalState().newIdFromApi;
+        //   await apiService.updateTask(
+        //       task.id, task.toJson()); // Update task on API
+        //   GlobalState().newIdFromApi = "";
+        // }
+        else if (task.isUpdated == true) {
           // print(task.toJson());
           await apiService.updateTask(
               task.id, task.toJson()); // Update task on API
@@ -147,6 +163,9 @@ class TaskCubit extends Cubit<Data> {
       print('Données locales synchronisées avec l’API.');
     } catch (e) {
       print('Erreur lors de la synchronisation des données locales : $e');
+    } finally {
+      // Libérer le verrou
+      _isFetchingTasks = false;
     }
   }
 
