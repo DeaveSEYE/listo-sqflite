@@ -31,6 +31,7 @@ class TaskModal {
 
     Color? selectedCategoryColor;
     String? selectedCategory;
+    String? id;
     DateTime? selectedDate;
     Color selectedFlagColor = Colors.grey;
     String prior = "";
@@ -49,6 +50,9 @@ class TaskModal {
     }
     if (task != null) {
       selectedDate = DateTime.parse(task!.dueDate);
+    }
+    if (task != null) {
+      id = task!.id;
     }
 
     showModalBottomSheet(
@@ -124,6 +128,7 @@ class TaskModal {
                               }
 
                               final taskData = {
+                                'id': id,
                                 'title': titleController.text,
                                 'categorie': selectedCategory,
                                 'description': descriptionController.text,
@@ -135,7 +140,8 @@ class TaskModal {
                                 "categorieColor": 'red'
                                 // "categorieColor": colorName
                               };
-                              print(taskData);
+                              // print('LA');
+                              // print(taskData);
                               if (isEditing) {
                                 print('EDITION DE TACHE');
                                 try {

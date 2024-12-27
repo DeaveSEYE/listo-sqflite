@@ -98,7 +98,8 @@ class _BuildTaskItemState extends State<BuildTaskItem> {
           onTap: (CompletionHandler handler) async {
             await handler(true); // Action de suppression
             try {
-              await apiService.deleteTask(widget.task.id);
+              await apiService.deleteTask(widget.task.toJson());
+              // await apiService.deleteTask(widget.task.id);
               setState(() {
                 widget.onDelete(widget.index);
               });

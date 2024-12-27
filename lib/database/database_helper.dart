@@ -84,13 +84,14 @@ class DatabaseHelper {
   // Méthodes pour interagir avec la base de données
   Future<List<Map<String, dynamic>>> fetchTasks() async {
     final db = await database;
-    return await db.query('tasks');
+    return await db.query('tasks', where: 'isDeleted = 0');
   }
 
   Future<void> clearTasks() async {
+    print("NETTOYAGE DE LA BASE LOCALE ");
     final db = await database;
     await db.delete('tasks');
-    print("Toutes les tâches ont été supprimées.");
+    print("NETTOYAGE DE LA BASE LOCALE TERMINER");
   }
 
   // Fetch tasks that need to be synced (new, updated, or deleted)
@@ -104,28 +105,39 @@ class DatabaseHelper {
   // Mark a task as synced after successful API sync
   Future<void> markTaskAsSynced(String taskId) async {
     final db = await database;
-    await db.update('tasks', {'isUpdated': 1},
+    await db.update('tasks', {'is_synced': 1},
         where: 'id = ?', whereArgs: [taskId]);
   }
 
   // Insert a new task
   Future<void> insertTask(Map<String, dynamic> task) async {
     final db = await database;
-    // Avant d'insérer dans la base locale, vérifiez ou générez un ID
-    if (task['id'] == null || task['id'].isEmpty) {
-      task['id'] = "listo"; // Génère un ID unique
-    }
-    task['is_synced'] = 0;
-    task['isNew'] = 1;
-    task['isUpdated'] = 0;
-    task['isDeleted'] = 0;
-    task['createdAt'] = '2024-12-02T15:00:00.000Z';
-    task['updatedAt'] = '2024-12-02T15:00:00.000Z';
+
+    // if (task['id'] == null || task['id'].isEmpty) {
+    //   // Avant d'insérer dans la base locale, vérifiez ou générez un
+    //   task['id'] = "listo"; // Definir un ID temporaire
+    //   task['createdAt'] = '2024-12-02T15:00:00.000Z';
+    //   task['updatedAt'] = '2024-12-02T15:00:00.000Z';
+    //   task['is_synced'] = 0;
+    //   task['isNew'] = 1;
+    //   task['isUpdated'] = 0;
+    //   task['isDeleted'] = 0;
+    // } else {
+    //   task['is_synced'] = 0;
+    //   task['isNew'] = 0;
+    //   task['isUpdated'] = 0;
+    // task['isDeleted'] = 0;
+    // }
+    // task.addAll({
+    //   'isDeleted': 0,
+    // });
     await db.insert('tasks', task);
     if (GlobalState().firstInitialize) {
-      print("INSERTION DES TACHES DANS LA BASE LOCAL EFFECTUER AVEC SUCCESS");
+      print(
+          "INSERTION NOUVELLE TACHE DANS LA BASE LOCAL EFFECTUER AVEC SUCCESS");
+      print(task.toString());
     } else {
-      // print("Tâche insérée : $task");
+      print("Tâche insérée provenant de l'API: $task");
     }
   }
 

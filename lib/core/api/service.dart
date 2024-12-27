@@ -23,7 +23,7 @@ class ApiService {
       final localTasks = await _databaseHelper.fetchTasks();
       return localTasks.map((e) => Task.fromJson(e)).toList();
     } else {
-      print('Connexion Internet disponible.');
+      // print('Connexion Internet disponible.');
       // print("Utilisation de l'API distante pour les tâches.");
       final response = await http.get(Uri.parse(taskApiUrl));
       if (response.statusCode == 200) {
@@ -37,13 +37,33 @@ class ApiService {
 
   // Add a new task to the API
   Future<void> addTask(Map<String, dynamic> taskData) async {
-    if (GlobalState().firstInitialize) {
+    print(GlobalState().firstInitialize);
+    if (GlobalState().firstInitialize && GlobalState().apiInitialize == false) {
       print("Ajout de la tâche dans la base locale.");
       taskData['isChecked'] = taskData['isChecked'] == false ? 0 : 1;
-      taskData['id'] = "listo";
+      taskData.addAll({
+        'id': "listo",
+        'is_synced': 0,
+        'isNew': 1,
+        'isUpdated': 0,
+        'isDeleted': 0,
+      });
+
       await _databaseHelper.insertTask(taskData);
     } else {
       print("Ajout de la tâche via l'API distante.");
+      taskData['isChecked'] = taskData['isChecked'] == false ? false : true;
+      // print(taskData['isChecked']);
+      List<String> keysToRemove = [
+        'is_synced',
+        'isNew',
+        'isUpdated',
+        'isDeleted'
+      ];
+
+      for (var key in keysToRemove) {
+        taskData.remove(key);
+      }
       final response = await http.post(
         Uri.parse(taskApiUrl),
         headers: {'Content-Type': 'application/json'},
@@ -52,22 +72,32 @@ class ApiService {
       if (response.statusCode != 201) {
         throw Exception('Failed to add task: ${response.body}');
       }
+      GlobalState().apiInitialize = false;
     }
   }
 
   // delete task to the API
-  Future<void> deleteTask(String taskId) async {
-    if (GlobalState().firstInitialize) {
+  // Future<void> addTask(Map<String, dynamic> taskData) async {
+  Future<void> deleteTask(Map<String, dynamic> task) async {
+    if (GlobalState().firstInitialize && GlobalState().apiInitialize == false) {
       print(
           "FIRST INITIALIZE dans deleteTask : ${GlobalState().firstInitialize}");
       print("Suppression de la tâche de la base locale.");
       // print(taskId);
-      await _databaseHelper.deleteTask(taskId);
+      task['isChecked'] = task['isChecked'] == false ? 0 : 1;
+      task.addAll({
+        'is_synced': 0,
+        'isNew': 1,
+        'isUpdated': 0,
+        'isDeleted': 1,
+      });
+      // await _databaseHelper.deleteTask(task['id']);
+      await _databaseHelper.updateTask(task);
     } else {
       print(
           "FIRST INITIALIZE dans deleteTask : ${GlobalState().firstInitialize}");
       print("Suppression de la tâche via l'API distante.");
-      final apiUrl = '$taskApiUrl/$taskId';
+      final apiUrl = "$taskApiUrl/$task['id']";
       final response = await http.delete(
         Uri.parse(apiUrl),
         headers: {'Content-Type': 'application/json'},
@@ -75,23 +105,43 @@ class ApiService {
       if (response.statusCode != 200 && response.statusCode != 204) {
         throw Exception('Failed to delete task: ${response.body}');
       } else {
-        print("TACHE AVEC ID  : ${taskId} SUPPRIMER AVEC SUCCESS VIA L'API'");
+        print(
+            "TACHE AVEC ID  : ${task['id']} SUPPRIMER AVEC SUCCESS VIA L'API'");
       }
     }
   }
 
   // update task to the API
   Future<void> updateTask(String taskId, Map<String, dynamic> taskData) async {
-    if (GlobalState().firstInitialize) {
+    if (GlobalState().firstInitialize && GlobalState().apiInitialize == false) {
       print("Mise à jour de la tâche dans la base locale.");
       taskData['isChecked'] = taskData['isChecked'] == false ? 0 : 1;
-      taskData['id'] = "listo";
+      taskData.addAll({
+        'is_synced': 0,
+        'isNew': 0,
+        'isUpdated': 1,
+        'isDeleted': 0,
+      });
+      // print('ICI');
       // print(taskData);
       await _databaseHelper.updateTask(taskData);
     } else {
       print("Mise à jour de la tâche via l'API distante.");
+
+      List<String> keysToRemove = [
+        'is_synced',
+        'isNew',
+        'isUpdated',
+        'isDeleted'
+      ];
+
+      for (var key in keysToRemove) {
+        taskData.remove(key);
+      }
+      // print('LALALA');
+      // print(taskData);
       final apiUrl = '$taskApiUrl/$taskId';
-      final response = await http.patch(
+      final response = await http.put(
         Uri.parse(apiUrl),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode(taskData),
