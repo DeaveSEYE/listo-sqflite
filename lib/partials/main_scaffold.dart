@@ -63,16 +63,26 @@ class _MainScaffoldState extends State<MainScaffold> {
       body: BlocListener<TaskCubit, Data>(listener: (context, state) {
         // Ce callback est appelé lorsque l'état du cubit est mis à jour
         // Par exemple, après un appel à reload()
-        if (state.tasks.isEmpty) {
-          // print("Aucune tâche disponible");
-        }
+        // if (state.tasks.isEmpty) {
+        // print("Aucune tâche disponible");
+        // }
       }, child: BlocBuilder<TaskCubit, Data>(
         builder: (context, state) {
-          if (state.tasks.isEmpty) {
+          if (state.isLoading) {
             return const Center(child: CircularProgressIndicator());
+          } else if (state.tasks.isEmpty) {
+            // Show "No tasks" message when no tasks are available
+            return Center(
+              child: Text(
+                'Aucune tâche disponible.',
+                style: TextStyle(
+                  fontSize: 16,
+                  color: AppColors.primary,
+                ),
+              ),
+            );
           }
           final tasks = state.tasks;
-
           return [
             Home(tasks: tasks, categories: categories),
             Tasklist(tasks: tasks, categories: categories),

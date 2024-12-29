@@ -7,7 +7,7 @@ class Task {
   final String title;
   final String categorie;
   final String description;
-  Color categorieColor;
+  String categorieColor;
   String priority; // Utilisation d'une chaîne pour remplacer l'enum
   bool isChecked;
   final String createdAt;
@@ -41,9 +41,8 @@ class Task {
       'categorie': categorie,
       'description': description,
       'priority': priority, // Utilisation d'une chaîne au lieu d'enum
-      'isChecked': isChecked ? 1 : 0, // Convertir en entier pour la base
-      'categorieColor':
-          categorieColor.value.toString(), // Stockage de la couleur
+      'isChecked': isChecked ? 0 : 1, // Convertir en entier pour la base
+      'categorieColor': categorieColor, // Stockage de la couleur
       'createdAt': createdAt,
       'updatedAt': updatedAt,
       'dueDate': dueDate,
@@ -55,6 +54,8 @@ class Task {
 
   // Convertir une Map issue de SQLite en un objet Task
   factory Task.fromJson(Map<String, dynamic> json) {
+    // print("Task.fromJson");
+    // print(json['categorieColor']);
     return Task(
       id: json['id'],
       title: json['title'],
@@ -63,7 +64,7 @@ class Task {
       updatedAt: json['updatedAt'],
       dueDate: json['dueDate'],
       categorie: json['categorie'],
-      categorieColor: getColorFromName(json['categorieColor']),
+      categorieColor: json['categorieColor'],
       isChecked: json['isChecked'] == 1, // Convertir en booléen
       priority: json['priority'], // Utilisation directe de la chaîne
       isNew: json['isNew'] == 1, // Convertir en booléen
@@ -75,6 +76,8 @@ class Task {
 
 // Fonction pour récupérer une couleur depuis son nom ou un code hexadécimal
 Color getColorFromName(String colorName) {
+  print('task.dart');
+  print(colorName);
   Map<String, String> colorMap = {
     'red': '#FF0000',
     'green': '#008000',
@@ -99,5 +102,5 @@ Color getColorFromName(String colorName) {
   }
 
   // Si la couleur n'est pas trouvée, retourne une couleur par défaut (gris)
-  return Colors.grey;
+  return Colors.black87;
 }

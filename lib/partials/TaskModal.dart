@@ -29,7 +29,7 @@ class TaskModal {
     // final TextEditingController dateController = TextEditingController();
     // final TextEditingController priorityController = TextEditingController();
 
-    Color? selectedCategoryColor;
+    String? selectedCategoryColor;
     String? selectedCategory;
     String? id;
     DateTime? selectedDate;
@@ -89,9 +89,11 @@ class TaskModal {
                           const Spacer(),
                           ElevatedButton(
                             onPressed: () async {
-                              String colorName =
-                                  getColorName(selectedCategoryColor!);
-                              // print(colorName); // Cela renverra "Orange"
+                              // String colorName =
+                              // colorToString(selectedCategoryColor!);
+                              // print("in");
+                              // print(
+                              //     selectedCategoryColor); // Cela renverra "Orange"
 
                               // Vérifier si les champs sont valides
                               if (titleController.text.isEmpty ||
@@ -137,8 +139,7 @@ class TaskModal {
                                 'dueDate': selectedDate?.toIso8601String(),
                                 "priority": prior,
                                 "isChecked": false,
-                                "categorieColor": 'red'
-                                // "categorieColor": colorName
+                                "categorieColor": selectedCategoryColor
                               };
                               // print('LA');
                               // print(taskData);
@@ -215,7 +216,8 @@ class TaskModal {
                         onCategorySelected: (category, color) {
                           setState(() {
                             selectedCategory = category;
-                            selectedCategoryColor = color;
+                            selectedCategoryColor = colorToString(
+                                color); // Convertir la couleur en chaîne;
                           });
                         },
                       ),
@@ -289,8 +291,8 @@ class TaskModal {
                                   style: TextStyle(
                                       fontSize: 16, color: Colors.white),
                                 ),
-                                backgroundColor:
-                                    selectedCategoryColor, // Couleur de fond basée sur la catégorie sélectionnée
+                                backgroundColor: parseColor(
+                                    selectedCategoryColor), // Couleur de fond basée sur la catégorie sélectionnée
                               ),
                             ),
                         ],
@@ -313,50 +315,6 @@ class TaskModal {
         );
       },
     );
-  }
-
-  // Utility methods
-  String getColorName(Color color) {
-    // print(color.value); // Affiche la valeur de la couleur
-
-    // Comparaison avec les couleurs personnalisées en utilisant leurs valeurs hexadécimales
-    if (color.value == Color(0xffff0000).value) {
-      // Red
-      return "Color(0xffff0000)";
-    } else if (color.value == Color(0xff008000).value) {
-      // Green
-      return "green";
-    } else if (color.value == Color(0xffffff00).value) {
-      // Yellow
-      return "yellow";
-    } else if (color.value == Color(0xff0000ff).value) {
-      // Blue
-      return "blue";
-    } else if (color.value == Color(0xffffa500).value) {
-      // Orange
-      return "orange";
-    } else if (color.value == Color(0xff800080).value) {
-      // Purple
-      return "purple";
-    } else if (color.value == Color(0xffffc0cb).value) {
-      // Pink
-      return "pink";
-    } else if (color.value == Color(0xffa52a2a).value) {
-      // Brown
-      return "brown";
-    } else if (color.value == Color(0xff808080).value) {
-      // Grey
-      return "grey";
-    } else if (color.value == Color(0xff000000).value) {
-      // Black
-      return "black";
-    } else if (color.value == Color(0xffffffff).value) {
-      // White
-      return "white";
-    } else {
-      // Si la couleur ne correspond à aucune des prédéfinies
-      return "Unknown";
-    }
   }
 
   String priorityFromColorString(Color color) {
@@ -384,15 +342,157 @@ class TaskModal {
     }
   }
 
-  String getColorNameFromToString(String colorString) {
-    if (colorString.contains('Color(0xff4caf50)')) {
-      return "green"; // Colors.green
+  Color parseColor(String? colorString) {
+    // print("parseColor");
+    // print(colorString);
+    // Couleur par défaut si `colorString` est null
+    if (colorString == null) return Colors.black;
+
+    // Correspondance des noms de couleur avec leurs valeurs hexadécimales
+    switch (colorString.toLowerCase()) {
+      case 'red': // Red
+        return Colors.red;
+      case 'pink': // Pink
+        return Colors.pink;
+      case 'purple': // Purple
+        return Colors.purple;
+      case 'deep purple': // Deep Purple
+        return Colors.deepPurple;
+      case 'indigo': // Indigo
+        return Colors.indigo;
+      case 'blue': // Blue
+        return Colors.blue;
+      case 'light blue': // Light Blue
+        return Colors.lightBlue;
+      case 'cyan': // Cyan
+        return Colors.cyan;
+      case 'teal': // Teal
+        return Colors.teal;
+      case 'green': // Green
+        return Colors.green;
+      case 'light green': // Light Green
+        return Colors.lightGreen;
+      case 'lime': // Lime
+        return Colors.lime;
+      case 'yellow': // Yellow
+        return Colors.yellow;
+      case 'amber': // Amber
+        return Colors.amber;
+      case 'orange': // Orange
+        return Colors.orange;
+      case 'deep orange': // Deep Orange
+        return Colors.deepOrange;
+      case 'brown': // Brown
+        return Colors.brown;
+      case 'grey': // Grey
+        return Colors.grey;
+      case 'blue grey': // Blue Grey
+        return Colors.blueGrey;
+      default:
+        return Colors.black45; // Couleur par défaut si aucune correspondance
     }
-    if (colorString.contains('Color(0xffffeb3b)')) {
-      return "yellow"; // Colors.yellow
+  }
+
+  String colorToString(Color color) {
+    // print("color de taskModal");
+    // print(color);
+
+    // Tolérance pour la comparaison (exemple : 0.01 pour accepter les différences minimes)
+    const double tolerance = 0.01;
+
+    // Fonction pour comparer deux valeurs avec tolérance
+    bool isCloseTo(double value1, double value2) {
+      return (value1 - value2).abs() < tolerance;
     }
-    if (colorString.contains('Color(0xfff44336)')) return "red"; // Colors.red
-    return "unknown"; // Si la couleur n'est pas reconnue
+
+    // Vérifie si la couleur est un MaterialColor
+    if (color is MaterialColor) {
+      if (color == Colors.red) return 'red';
+      if (color == Colors.pink) return 'pink';
+      if (color == Colors.purple) return 'purple';
+      if (color == Colors.deepPurple) return 'deepPurple';
+      if (color == Colors.indigo) return 'indigo';
+      if (color == Colors.blue) return 'blue';
+      if (color == Colors.lightBlue) return 'lightBlue';
+      if (color == Colors.cyan) return 'cyan';
+      if (color == Colors.teal) return 'teal';
+      if (color == Colors.green) return 'green';
+      if (color == Colors.lightGreen) return 'lightGreen';
+      if (color == Colors.lime) return 'lime';
+      if (color == Colors.yellow) return 'yellow';
+      if (color == Colors.amber) return 'amber';
+      if (color == Colors.orange) return 'orange';
+      if (color == Colors.deepOrange) return 'deepOrange';
+      if (color == Colors.brown) return 'brown';
+      if (color == Colors.grey) return 'grey';
+      if (color == Colors.blueGrey) return 'blueGrey';
+      return 'unknown material color';
+    }
+
+    // Sinon, traite-le comme une couleur normale
+    // Extraction des composantes de la couleur
+    double red = color.red / 255.0;
+    double green = color.green / 255.0;
+    double blue = color.blue / 255.0;
+
+    // Vérification des couleurs par correspondance avec tolérance
+    if (isCloseTo(red, 1.0) && isCloseTo(green, 0.0) && isCloseTo(blue, 0.0))
+      return 'red'; // Red
+    if (isCloseTo(red, 0.9137) &&
+        isCloseTo(green, 0.1176) &&
+        isCloseTo(blue, 0.3882)) return 'pink'; // Pink
+    if (isCloseTo(red, 0.6118) &&
+        isCloseTo(green, 0.1529) &&
+        isCloseTo(blue, 0.6902)) return 'purple'; // Purple
+    if (isCloseTo(red, 0.4039) &&
+        isCloseTo(green, 0.2314) &&
+        isCloseTo(blue, 0.7176)) return 'deep purple'; // Deep Purple
+    if (isCloseTo(red, 0.2471) &&
+        isCloseTo(green, 0.3176) &&
+        isCloseTo(blue, 0.7098)) return 'indigo'; // Indigo
+    if (isCloseTo(red, 0.1294) &&
+        isCloseTo(green, 0.5882) &&
+        isCloseTo(blue, 0.9529)) return 'blue'; // Blue
+    if (isCloseTo(red, 0.0157) &&
+        isCloseTo(green, 0.6627) &&
+        isCloseTo(blue, 0.9569)) return 'light blue'; // Light Blue
+    if (isCloseTo(red, 0.0) &&
+        isCloseTo(green, 0.7373) &&
+        isCloseTo(blue, 0.8314)) return 'cyan'; // Cyan
+    if (isCloseTo(red, 0.0) &&
+        isCloseTo(green, 0.5882) &&
+        isCloseTo(blue, 0.5333)) return 'teal'; // Teal
+    if (isCloseTo(red, 0.2980) &&
+        isCloseTo(green, 0.6863) &&
+        isCloseTo(blue, 0.3137)) return 'green'; // Green
+    if (isCloseTo(red, 0.5451) &&
+        isCloseTo(green, 0.7647) &&
+        isCloseTo(blue, 0.2902)) return 'light green'; // Light Green
+    if (isCloseTo(red, 0.8039) &&
+        isCloseTo(green, 0.8627) &&
+        isCloseTo(blue, 0.2235)) return 'lime'; // Lime
+    if (isCloseTo(red, 1.0) &&
+        isCloseTo(green, 0.9216) &&
+        isCloseTo(blue, 0.2314)) return 'yellow'; // Yellow
+    if (isCloseTo(red, 1.0) &&
+        isCloseTo(green, 0.7569) &&
+        isCloseTo(blue, 0.0275)) return 'amber'; // Amber
+    if (isCloseTo(red, 1.0) && isCloseTo(green, 0.5961) && isCloseTo(blue, 0.0))
+      return 'orange'; // Orange
+    if (isCloseTo(red, 1.0) &&
+        isCloseTo(green, 0.3412) &&
+        isCloseTo(blue, 0.1333)) return 'deep orange'; // Deep Orange
+    if (isCloseTo(red, 0.4745) &&
+        isCloseTo(green, 0.3333) &&
+        isCloseTo(blue, 0.2824)) return 'brown'; // Brown
+    if (isCloseTo(red, 0.6196) &&
+        isCloseTo(green, 0.6196) &&
+        isCloseTo(blue, 0.6196)) return 'grey'; // Grey
+    if (isCloseTo(red, 0.3765) &&
+        isCloseTo(green, 0.4902) &&
+        isCloseTo(blue, 0.5451)) return 'blue grey'; // Blue Grey
+
+    return 'unknown color';
   }
 
   void showErrorMessage(String message) {
@@ -400,4 +500,26 @@ class TaskModal {
       SnackBar(content: Text(message)),
     );
   }
+
+//   void showErrorMessage(String message) {
+//   ScaffoldMessenger.of(context).showMaterialBanner(
+//     MaterialBanner(
+//       content: Text(message),
+//       backgroundColor: Colors.red,
+//       actions: [
+//         TextButton(
+//           onPressed: () {
+//             ScaffoldMessenger.of(context).hideCurrentMaterialBanner();
+//           },
+//           child: Text('OK', style: TextStyle(color: Colors.white)),
+//         ),
+//       ],
+//     ),
+//   );
+
+//   // Masquer automatiquement après 3 secondes
+//   Future.delayed(Duration(seconds: 3), () {
+//     ScaffoldMessenger.of(context).hideCurrentMaterialBanner();
+//   });
+// }
 }

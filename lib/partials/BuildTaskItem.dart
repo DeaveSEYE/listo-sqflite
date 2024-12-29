@@ -81,6 +81,8 @@ class _BuildTaskItemState extends State<BuildTaskItem> {
               categories: categories,
               task: widget.task, // Tâche vide pour ajouter une nouvelle tâche
               onTaskAdded: (taskData) async {
+                // print("widget.task.categorieColor");
+                // print(widget.task.categorieColor);
                 // Call your API to add the task
                 await apiService.addTask(taskData);
               },
@@ -156,7 +158,7 @@ class _BuildTaskItemState extends State<BuildTaskItem> {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
-                  color: widget.task.categorieColor,
+                  color: parseColor(widget.task.categorieColor),
                   borderRadius: BorderRadius.circular(4),
                 ),
                 child: Text(
@@ -297,6 +299,72 @@ Color _getPriorityColor(String priority) {
     default:
       return Colors.green;
   }
+}
+
+Color parseColor(String? colorString) {
+  // print("colorString FROM buidtaskitem");
+  // print(colorString);
+  // Couleur par défaut si `colorString` est null
+  if (colorString == null) return Colors.black;
+
+  // Correspondance des noms de couleur avec leurs valeurs hexadécimales
+  switch (colorString.toLowerCase()) {
+    case 'red': // Red
+      return Colors.red;
+    case 'pink': // Pink
+      return Colors.pink;
+    case 'purple': // Purple
+      return Colors.purple;
+    case 'deep purple': // Deep Purple
+      return Colors.deepPurple;
+    case 'indigo': // Indigo
+      return Colors.indigo;
+    case 'blue': // Blue
+      return Colors.blue;
+    case 'light blue': // Light Blue
+      return Colors.lightBlue;
+    case 'cyan': // Cyan
+      return Colors.cyan;
+    case 'teal': // Teal
+      return Colors.teal;
+    case 'green': // Green
+      return Colors.green;
+    case 'light green': // Light Green
+      return Colors.lightGreen;
+    case 'lime': // Lime
+      return Colors.lime;
+    case 'yellow': // Yellow
+      return Colors.yellow;
+    case 'amber': // Amber
+      return Colors.amber;
+    case 'orange': // Orange
+      return Colors.orange;
+    case 'deep orange': // Deep Orange
+      return Colors.deepOrange;
+    case 'brown': // Brown
+      return Colors.brown;
+    case 'grey': // Grey
+      return Colors.grey;
+    case 'blue grey': // Blue Grey
+      return Colors.blueGrey;
+  }
+  // Si colorString est un code hexadécimal
+  if (colorString.startsWith('#')) {
+    return _colorFromHex(colorString);
+  }
+
+  // Si aucun des cas ne correspond, lève une exception ou retourne une couleur par défaut
+  throw ArgumentError('Invalid color string: $colorString');
+}
+
+// Fonction utilitaire pour convertir un code hexadécimal en une couleur
+Color _colorFromHex(String hexColor) {
+  hexColor = hexColor.replaceFirst('#', '');
+  if (hexColor.length == 6) {
+    hexColor = 'FF' + hexColor; // Ajoute un alpha par défaut (FF = opaque)
+  }
+  int colorInt = int.parse(hexColor, radix: 16);
+  return Color(colorInt);
 }
 
 String _getPriorityText(String priority) {

@@ -109,27 +109,6 @@ class DatabaseHelper {
 
   Future<void> insertTask(Map<String, dynamic> task) async {
     final db = await database;
-
-    // if (task['id'] == null || task['id'].isEmpty) {
-    //   // Avant d'insérer dans la base locale, vérifiez ou générez un
-    //   task['id'] = "listo"; // Definir un ID temporaire
-    //   task['createdAt'] = '2024-12-02T15:00:00.000Z';
-    //   task['updatedAt'] = '2024-12-02T15:00:00.000Z';
-    //   task['is_synced'] = 0;
-    //   task['isNew'] = 1;
-    //   task['isUpdated'] = 0;
-    //   task['isDeleted'] = 0;
-    // } else {
-    //   task['is_synced'] = 0;
-    //   task['isNew'] = 0;
-    //   task['isUpdated'] = 0;
-    // task['isDeleted'] = 0;
-    // }
-    // task.addAll({
-    //   'isDeleted': 0,
-    // });
-    // print(task['categorieColor'].toString());
-
     await db.insert('tasks', task);
     if (GlobalState().firstInitialize) {
       print(

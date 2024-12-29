@@ -66,13 +66,13 @@ class ApiService {
       } else {
         final responseData = json.decode(response.body);
         final String idFromApi = responseData['id']; // Récupération de l'ID
-        print('Task added successfully with ID: $idFromApi');
+        print('tache ajouté avec success  ID: $idFromApi');
         taskData['isChecked'] = taskData['isChecked'] == false ? 0 : 1;
         taskData['id'] = idFromApi;
         GlobalState().newIdFromApi = idFromApi;
         taskData['isNew'] = 0;
         taskData['is_synced'] = 0;
-        print("daouda");
+        // print("daouda");
         print(taskData);
         await _databaseHelper.updateTask(taskData);
       }
@@ -82,10 +82,10 @@ class ApiService {
 
   Future<void> deleteTask(Map<String, dynamic> task) async {
     if (GlobalState().firstInitialize && GlobalState().apiInitialize == false) {
-      print(
-          "FIRST INITIALIZE dans deleteTask : ${GlobalState().firstInitialize}");
+      // print(
+      //     "FIRST INITIALIZE dans deleteTask : ${GlobalState().firstInitialize}");
       print("Suppression de la tâche de la base locale.");
-      // print(taskId);
+      print(task['id']);
       task['isChecked'] = task['isChecked'] == false ? 0 : 1;
       task.addAll({
         'is_synced': 0,
@@ -93,11 +93,11 @@ class ApiService {
         'isUpdated': 0,
         'isDeleted': 1,
       });
-      // await _databaseHelper.deleteTask(task['id']);
+
       await _databaseHelper.updateTask(task);
     } else {
-      print(
-          "FIRST INITIALIZE dans deleteTask : ${GlobalState().firstInitialize}");
+      // print(
+      //     "FIRST INITIALIZE dans deleteTask : ${GlobalState().firstInitialize}");
       print("Suppression de la tâche via l'API distante.");
       final apiUrl = "$taskApiUrl/${task['id']}";
       final response = await http.delete(
@@ -115,7 +115,8 @@ class ApiService {
         task.addAll({
           'is_synced': 0,
         });
-        await _databaseHelper.updateTask(task);
+        await _databaseHelper.deleteTask(task['id']);
+        // await _databaseHelper.updateTask(task);
       }
     }
   }

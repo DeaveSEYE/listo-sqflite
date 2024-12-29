@@ -3,7 +3,6 @@ import 'dart:io' show InternetAddress;
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:listo/core/api/service.dart';
-import 'package:listo/core/utils/colorConverter.dart';
 import 'package:listo/core/utils/task.dart';
 import 'package:listo/database/database_helper.dart';
 import 'package:listo/core/global/global_state.dart'; // Import du gestionnaire global
@@ -54,6 +53,7 @@ class TaskCubit extends Cubit<Data> {
   }
 
   Future<void> _fetchTasksFromApi() async {
+    emit(Data([], isLoading: true)); // Start loading
     try {
       final fetchedTasks = await apiService.fetchTasks();
       // Effacer les anciennes tâches dans la base locale
@@ -61,20 +61,6 @@ class TaskCubit extends Cubit<Data> {
 
       // Sauvegarder les tâches récupérées dans la base locale
       for (var task in fetchedTasks) {
-        // Obtenir la valeur entière de la couleur
-        int colorInt = task.categorieColor.value;
-
-        // Convertir la valeur en nom de couleur
-        String colorName = ColorConverter.getColorName(colorInt);
-        // print(colorName);
-        // List<String> keysToRemove = ['categorieColor'];
-
-        // for (var key in keysToRemove) {
-        //   task.toJson().remove(key);
-        // }
-        task.toJson().addAll({
-          'categorieColor': colorName,
-        });
         print(task.toJson());
         // Insérer dans la base de données
         await _databaseHelper.insertTask(task.toJson());
@@ -92,10 +78,12 @@ class TaskCubit extends Cubit<Data> {
       }
     } catch (e) {
       print('Erreur lors de la récupération des tâches depuis l’API : $e');
+      emit(Data([], isLoading: false));
     }
   }
 
   Future<void> _fetchTasksFromLocal() async {
+    emit(Data([], isLoading: true));
     // print(
     //     "FIRST INITIALIZE DANS _fetchTasksFromLocal : ${GlobalState().firstInitialize}");
     try {
@@ -104,10 +92,11 @@ class TaskCubit extends Cubit<Data> {
       final tasks = localTasks.map((e) => Task.fromJson(e)).toList();
       emit(Data(tasks));
       print('Tâches récupérées depuis la base locale.');
-      print(tasks.toString());
+      // print(tasks.toString());
       // print(localTasks);
     } catch (e) {
       print('Erreur lors du chargement des tâches depuis la base locale : $e');
+      emit(Data([], isLoading: false));
     }
   }
 
@@ -119,7 +108,7 @@ class TaskCubit extends Cubit<Data> {
 
   // Sync vers l'api toute les 5minutes
   void _syncLocalDataWithApi() {
-    Timer.periodic(Duration(minutes: 5), (timer) async {
+    Timer.periodic(Duration(minutes: 1), (timer) async {
       if (await isInternetAvailable()) {
         print(
             "Internet connecté. Tentative de synchronisation des données locales...");
