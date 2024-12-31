@@ -136,9 +136,35 @@ class _BuildTaskItemState extends State<BuildTaskItem> {
             icon: Icon(
               isChecked ? Icons.check_box : Icons.check_box_outline_blank,
             ),
-            onPressed: () {
+            onPressed: () async {
+              // Exécution de la logique asynchrone
+              bool newCheckedState = !isChecked;
+
+              try {
+                await apiService.check(newCheckedState, widget.task.toJson());
+                NotificationHelper.showFlushbar(
+                  // ignore: use_build_context_synchronously
+                  context: context,
+                  message:
+                      "Tâche marqué comme ${newCheckedState ? 'Terminée' : 'En Attente'}",
+                  type: NotificationType.success,
+                );
+                // context.read<TaskCubit>().reload();
+              } catch (error) {
+                print("Erreur lors de la mise à jour de l'état : $error");
+                NotificationHelper.showFlushbar(
+                  // ignore: use_build_context_synchronously
+                  context: context,
+                  message: "Erreur lors de la mise à jour de l'état",
+                  type: NotificationType.error,
+                );
+                // context.read<TaskCubit>().reload();
+                return; // Si une erreur se produit, on ne met pas à jour l'état
+              }
+
+              // Mise à jour de l'état après le succès de la logique asynchrone
               setState(() {
-                isChecked = !isChecked;
+                isChecked = newCheckedState;
               });
             },
           ),

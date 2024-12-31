@@ -71,7 +71,6 @@ class _MainScaffoldState extends State<MainScaffold> {
           if (state.isLoading) {
             return const Center(child: CircularProgressIndicator());
           } else if (state.tasks.isEmpty) {
-            // Show "No tasks" message when no tasks are available
             return Center(
               child: Text(
                 'Aucune tâche disponible.',
@@ -83,6 +82,9 @@ class _MainScaffoldState extends State<MainScaffold> {
             );
           }
           final tasks = state.tasks;
+          // print("daouda");
+          // print(tasks[0].title);
+          // print(tasks[0].isChecked);
           return [
             Home(tasks: tasks, categories: categories),
             Tasklist(tasks: tasks, categories: categories),

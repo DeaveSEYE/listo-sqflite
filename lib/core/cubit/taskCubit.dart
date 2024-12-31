@@ -21,7 +21,7 @@ class TaskCubit extends Cubit<Data> {
   final apiService = ApiService(); // Instancie ApiService
   TaskCubit() : super(Data([])) {
     _fetchTasks(); // Charger les tâches lors de l'initialisation
-    _syncLocalDataWithApi(); // Start syncing local data to API periodically
+    // _syncLocalDataWithApi(); // Start syncing local data to API periodically
   }
 
   Future<void> _fetchTasks() async {
@@ -53,30 +53,39 @@ class TaskCubit extends Cubit<Data> {
   }
 
   Future<void> _fetchTasksFromApi() async {
-    emit(Data([], isLoading: true)); // Start loading
+    emit(Data([], isLoading: true)); // Indiquer que le chargement commence
     try {
+      // Récupérer les tâches depuis l'API
       final fetchedTasks = await apiService.fetchTasks();
+      // final fetchedCategories = await apiService.fetchCategories();
+      print('Tâches récupérées depuis l’API : ${fetchedTasks.length}');
+
       // Effacer les anciennes tâches dans la base locale
       await _databaseHelper.clearTasks();
+      print('Base locale effacée.');
 
-      // Sauvegarder les tâches récupérées dans la base locale
+      // Sauvegarder les nouvelles tâches dans la base locale
       for (var task in fetchedTasks) {
-        print(task.toJson());
-        // Insérer dans la base de données
         await _databaseHelper.insertTask(task.toJson());
+        print('Tâche sauvegardée localement : ${task.toJson()}');
       }
 
-      emit(Data(fetchedTasks));
+      // Mettre à jour l'état avec les nouvelles tâches
+      emit(Data(fetchedTasks, isLoading: false));
       GlobalState().firstInitialize = true; // Mettre à jour l'état global
-      print(
-          'toutes les Tâches récupérées depuis l’API ont été sauvegardées dans la base local.');
-      // Récupérer et afficher les tâches présentes dans la base locale
+      print('Toutes les tâches ont été sauvegardées dans la base locale.');
+
+      // Vérifier les tâches enregistrées localement
       final localTasks = await _databaseHelper.fetchTasks();
-      print("NOMBRE TACHE RECUPERER DEPUIS L'API : ${localTasks.length}");
+      print(
+          "Nombre de tâches récupérées depuis la base locale : ${localTasks.length}");
       for (var task in localTasks) {
         print("Tâche locale : ${task.toString()}");
       }
+      // Mettre à jour l'état avec les tâches locales
+      // emit(Data(localTasks.cast<Task>(), isLoading: false));
     } catch (e) {
+      // Gérer les erreurs et émettre un état vide
       print('Erreur lors de la récupération des tâches depuis l’API : $e');
       emit(Data([], isLoading: false));
     }
@@ -130,25 +139,40 @@ class TaskCubit extends Cubit<Data> {
     try {
       final tasksToSync = await _databaseHelper
           .fetchTasksToSync(); // recuperer les taches non synchronisés
-      print('NOMBRE TACHE A SYNC');
+      print('NOMBRE TACHE A SYNCHRONISER');
       print(tasksToSync.length);
       for (var task in tasksToSync) {
         print(task.toJson());
         if (task.isNew == true) {
           // print(task.toJson());
-          await apiService.addTask(task.toJson());
-        }
-        //  else if (task.isNew == true && task.isUpdated == true) {
-        //   await apiService.addTask(task.toJson());
-        //   task.id = GlobalState().newIdFromApi;
-        //   await apiService.updateTask(
-        //       task.id, task.toJson()); // Update task on API
-        //   GlobalState().newIdFromApi = "";
-        // }
-        else if (task.isUpdated == true) {
+          if (task.isDeleted == true) {
+            print(
+                "Tache deja supprimer de la base local donc pas besoin de faire push api distant");
+            await deleteTask(task);
+            return;
+          } else if (task.isUpdated == true) {
+            print(
+                "nouvelle tache maos ayant subit modification . donc push cette version modifier a l'api distant");
+            await apiService.addTask(task.toJson());
+            return;
+          } else {
+            print(
+                "nouvelle tache n'ayant subit ni de modification ni ayant ete supprime donc faire push api distant");
+            await apiService.addTask(task.toJson());
+            return;
+          }
+        } else if (task.isUpdated == true) {
           // print(task.toJson());
-          await apiService.updateTask(
-              task.id, task.toJson()); // Update task on API
+          if (task.isDeleted == true) {
+            print(
+                "Tache api modifier puis supprimer  de la base local donc supprimer de l'api distant");
+            await apiService.deleteTask(task.toJson());
+            return;
+          } else {
+            print("Tache api ayant subit modification push vers l'api distant");
+            await apiService.updateTask(
+                task.id, task.toJson()); // Update task on API
+          }
         } else if (task.isDeleted == true) {
           await apiService.deleteTask(task.toJson());
         }

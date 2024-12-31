@@ -32,6 +32,9 @@ class TaskModal {
     String? selectedCategoryColor;
     String? selectedCategory;
     String? id;
+    int? isNew;
+    int? isUpdated;
+    int? isDeleted;
     DateTime? selectedDate;
     Color selectedFlagColor = Colors.grey;
     String prior = "";
@@ -53,6 +56,15 @@ class TaskModal {
     }
     if (task != null) {
       id = task!.id;
+    }
+    if (task != null) {
+      isNew = task!.isNew == false ? 0 : 1;
+      isUpdated = task!.isUpdated == false ? 0 : 1;
+      isDeleted = task!.isDeleted == false ? 0 : 1;
+    } else {
+      isNew = 0;
+      isUpdated = 0;
+      isDeleted = 0;
     }
 
     showModalBottomSheet(
@@ -139,7 +151,10 @@ class TaskModal {
                                 'dueDate': selectedDate?.toIso8601String(),
                                 "priority": prior,
                                 "isChecked": false,
-                                "categorieColor": selectedCategoryColor
+                                "categorieColor": selectedCategoryColor,
+                                'isNew': isNew,
+                                'isUpdated': isUpdated,
+                                'isDeleted': isDeleted
                               };
                               // print('LA');
                               // print(taskData);

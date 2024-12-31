@@ -54,8 +54,8 @@ class Task {
 
   // Convertir une Map issue de SQLite en un objet Task
   factory Task.fromJson(Map<String, dynamic> json) {
-    // print("Task.fromJson");
-    // print(json['categorieColor']);
+    print("Task.fromJson");
+    print(json['isChecked']);
     return Task(
       id: json['id'],
       title: json['title'],
@@ -65,7 +65,7 @@ class Task {
       dueDate: json['dueDate'],
       categorie: json['categorie'],
       categorieColor: json['categorieColor'],
-      isChecked: json['isChecked'] == 1, // Convertir en booléen
+      isChecked: json['isChecked'] == 0, // Convertir en booléen
       priority: json['priority'], // Utilisation directe de la chaîne
       isNew: json['isNew'] == 1, // Convertir en booléen
       isUpdated: json['isUpdated'] == 1, // Convertir en booléen

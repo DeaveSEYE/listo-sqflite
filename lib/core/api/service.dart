@@ -28,18 +28,18 @@ class ApiService {
   }
 
   Future<void> addTask(Map<String, dynamic> taskData) async {
-    print(GlobalState().firstInitialize);
+    print(taskData);
+    // print(
+    //     "GlobalState().firstInitialize  : ${GlobalState().firstInitialize}  & GlobalState().apiInitialize ; ${GlobalState().apiInitialize}");
     if (GlobalState().firstInitialize && GlobalState().apiInitialize == false) {
       print("Ajout de la tâche dans la base locale.");
       taskData['isChecked'] = taskData['isChecked'] == false ? 0 : 1;
+      taskData['isNew'] = 1;
       GlobalState().localDBAutoIncrement++;
       String newId = "listo${GlobalState().localDBAutoIncrement}";
+      taskData['id'] = newId;
       taskData.addAll({
-        'id': newId,
         'is_synced': 0,
-        'isNew': 1,
-        'isUpdated': 0,
-        'isDeleted': 0,
       });
 
       await _databaseHelper.insertTask(taskData);
@@ -65,16 +65,21 @@ class ApiService {
         throw Exception('Failed to add task: ${response.body}');
       } else {
         final responseData = json.decode(response.body);
+        taskData['isChecked'] = taskData['isChecked'] == false ? 0 : 1;
         final String idFromApi = responseData['id']; // Récupération de l'ID
         print('tache ajouté avec success  ID: $idFromApi');
-        taskData['isChecked'] = taskData['isChecked'] == false ? 0 : 1;
+        await _databaseHelper.deleteTask(taskData['id']);
         taskData['id'] = idFromApi;
         GlobalState().newIdFromApi = idFromApi;
         taskData['isNew'] = 0;
+        // print(taskData['isUpdated']);
+        if (taskData['isUpdated'] == null || taskData['isUpdated'] == 1) {
+          taskData['isUpdated'] = 0;
+          taskData['isDeleted'] = 0;
+        }
         taskData['is_synced'] = 0;
-        // print("daouda");
         print(taskData);
-        await _databaseHelper.updateTask(taskData);
+        await _databaseHelper.insertTaskUpdated(taskData);
       }
       GlobalState().apiInitialize = false;
     }
@@ -85,13 +90,10 @@ class ApiService {
       // print(
       //     "FIRST INITIALIZE dans deleteTask : ${GlobalState().firstInitialize}");
       print("Suppression de la tâche de la base locale.");
-      print(task['id']);
       task['isChecked'] = task['isChecked'] == false ? 0 : 1;
+      task['isDeleted'] = 1;
       task.addAll({
         'is_synced': 0,
-        'isNew': 0,
-        'isUpdated': 0,
-        'isDeleted': 1,
       });
 
       await _databaseHelper.updateTask(task);
@@ -112,29 +114,24 @@ class ApiService {
             "TACHE AVEC ID  : ${task['id']} SUPPRIMER AVEC SUCCESS VIA L'API'");
         task['isNew'] = 0;
         task['isDeleted'] = 0;
+        task['isUpdated'] = 0;
         task.addAll({
           'is_synced': 0,
         });
         await _databaseHelper.deleteTask(task['id']);
-        // await _databaseHelper.updateTask(task);
       }
     }
   }
 
   Future<void> updateTask(String taskId, Map<String, dynamic> taskData) async {
-    print(
-        "GlobalState().firstInitialize  : ${GlobalState().firstInitialize}  & GlobalState().apiInitialize ; ${GlobalState().apiInitialize}");
+    // print(taskData);
     if (GlobalState().firstInitialize && GlobalState().apiInitialize == false) {
       print("Mise à jour de la tâche dans la base locale.");
       taskData['isChecked'] = taskData['isChecked'] == false ? 0 : 1;
+      taskData['isUpdated'] = 1;
       taskData.addAll({
         'is_synced': 0,
-        'isNew': 0,
-        'isUpdated': 1,
-        'isDeleted': 0,
       });
-      // print('ICI');
-      // print(taskData);
       await _databaseHelper.updateTask(taskData);
     } else {
       print("Mise à jour de la tâche via l'API distante.");
@@ -150,8 +147,6 @@ class ApiService {
         taskData.remove(key);
       }
       taskData['isChecked'] = taskData['isChecked'] == false ? false : true;
-      // print('LALALA');
-      // print(taskData);
       print(taskId);
 
       final apiUrl = '$taskApiUrl/$taskId';
@@ -161,7 +156,7 @@ class ApiService {
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode(taskData),
       );
-      print(response.statusCode);
+      // print(response.statusCode);
       if (response.statusCode != 200 && response.statusCode != 204) {
         throw Exception('Failed to update task: ${response.body}');
       } else {
@@ -169,14 +164,58 @@ class ApiService {
         taskData['isChecked'] = taskData['isChecked'] == false ? 0 : 1;
         await _databaseHelper.updateTask(taskData);
       }
-      // GlobalState().apiInitialize = false;
+    }
+  }
+
+  Future<void> check(bool isChecked, Map<String, dynamic> taskData) async {
+    // print(taskData);
+    if (GlobalState().firstInitialize && GlobalState().apiInitialize == false) {
+      print(
+          "Mise à jour de la tâche (terminer / en attente) dans la base locale.");
+      taskData['isChecked'] = isChecked == false ? 0 : 1;
+      taskData['isUpdated'] = 1;
+      taskData.addAll({
+        'is_synced': 0,
+      });
+      await _databaseHelper.updateTask(taskData);
+    } else {
+      print(
+          "Mise à jour de la tâche (terminer / en attente) via l'API distante.");
+
+      List<String> keysToRemove = [
+        'is_synced',
+        'isNew',
+        'isUpdated',
+        'isDeleted'
+      ];
+
+      for (var key in keysToRemove) {
+        taskData.remove(key);
+      }
+      taskData['isChecked'] = isChecked == false ? false : true;
+
+      final apiUrl = "$taskApiUrl/$taskData['id']";
+      print(apiUrl);
+      final response = await http.put(
+        Uri.parse(apiUrl),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode(taskData),
+      );
+      // print(response.statusCode);
+      if (response.statusCode != 200 && response.statusCode != 204) {
+        throw Exception(
+            'Failed to update task (terminer / en attente) task: ${response.body}');
+      } else {
+        taskData['isUpdated'] = 0;
+        taskData['isChecked'] = isChecked == false ? 0 : 1;
+        await _databaseHelper.updateTask(taskData);
+      }
     }
   }
 
   static Future<List<Categorie>> fetchCategories() async {
     final response = await http.get(Uri.parse(categorieApiUrl));
     if (response.statusCode == 200) {
-      // print(json.decode(response.body));
       final List<dynamic> categorieData = json.decode(response.body);
       return categorieData.map((data) => Categorie.fromJson(data)).toList();
     } else {
@@ -184,6 +223,21 @@ class ApiService {
     }
   }
 
+  // Future<List<Categorie>> fetchCategories() async {
+  //   if (GlobalState().firstInitialize) {
+  //     print("Utilisation de la base de données locale pour les categories.");
+  //     final localCategories = await _databaseHelper.fetchTasks();
+  //     return localCategories.map((e) => Categorie.fromJson(e)).toList();
+  //   } else {
+  //     final response = await http.get(Uri.parse(categorieApiUrl));
+  //     if (response.statusCode == 200) {
+  //       final List<dynamic> categorieata = json.decode(response.body);
+  //       return categorieata.map((data) => Categorie.fromJson(data)).toList();
+  //     } else {
+  //       throw Exception('Failed to load tasks');
+  //     }
+  //   }
+  // }
   static Future<void> addCategory(Map<String, dynamic> categoryData) async {
     final response = await http.post(
       Uri.parse(categorieApiUrl),

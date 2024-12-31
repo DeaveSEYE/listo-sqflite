@@ -87,6 +87,11 @@ class DatabaseHelper {
     return await db.query('tasks', where: 'isDeleted = 0');
   }
 
+  Future<List<Map<String, dynamic>>> fetchCategories() async {
+    final db = await database;
+    return await db.query('categories', where: 'isDeleted = 0');
+  }
+
   Future<void> clearTasks() async {
     print("NETTOYAGE DE LA BASE LOCALE ");
     final db = await database;
@@ -117,6 +122,11 @@ class DatabaseHelper {
     } else {
       print("Tâche insérée provenant de l'API: $task");
     }
+  }
+
+  Future<void> insertTaskUpdated(Map<String, dynamic> task) async {
+    final db = await database;
+    await db.insert('tasks', task);
   }
 
   Future<void> updateTask(Map<String, dynamic> task) async {
