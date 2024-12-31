@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:listo/core/utils/categorie.dart';
 import 'package:listo/core/utils/task.dart'; // Ensure Task is imported
 import 'package:listo/partials/BuildTaskItem.dart'; // Ensure BuildTaskItem is imported
 
 class Listviews extends StatefulWidget {
   final List<Task> tasks; // List of tasks passed as a parameter
-  const Listviews(this.tasks, {super.key});
+  final List<Categorie> categories; // List of tasks passed as a parameter
+  const Listviews(this.tasks, this.categories, {super.key});
 
   @override
   State<Listviews> createState() => _ListviewsState();
@@ -35,6 +37,7 @@ class _ListviewsState extends State<Listviews> {
           return BuildTaskItem(
             key: ValueKey(widget.tasks[index].id), // Pass a unique key
             task: widget.tasks[index],
+            categories: widget.categories,
             index: index,
             onDelete: _onDelete, // Provide the onDelete callback
             onUpdate: _onUpdate, // Provide the onUpdate callback

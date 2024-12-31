@@ -68,7 +68,7 @@ class ApiService {
         taskData['isChecked'] = taskData['isChecked'] == false ? 0 : 1;
         final String idFromApi = responseData['id']; // Récupération de l'ID
         print('tache ajouté avec success  ID: $idFromApi');
-        await _databaseHelper.deleteTask(taskData['id']);
+        await _databaseHelper.delete(taskData['id'], 'tasks');
         taskData['id'] = idFromApi;
         GlobalState().newIdFromApi = idFromApi;
         taskData['isNew'] = 0;
@@ -118,7 +118,7 @@ class ApiService {
         task.addAll({
           'is_synced': 0,
         });
-        await _databaseHelper.deleteTask(task['id']);
+        await _databaseHelper.delete(task['id'], 'tasks');
       }
     }
   }
@@ -213,39 +213,96 @@ class ApiService {
     }
   }
 
-  static Future<List<Categorie>> fetchCategories() async {
-    final response = await http.get(Uri.parse(categorieApiUrl));
-    if (response.statusCode == 200) {
-      final List<dynamic> categorieData = json.decode(response.body);
-      return categorieData.map((data) => Categorie.fromJson(data)).toList();
+  // static Future<List<Categorie>> fetchCategories() async {
+  //   final response = await http.get(Uri.parse(categorieApiUrl));
+  //   if (response.statusCode == 200) {
+  //     final List<dynamic> categorieData = json.decode(response.body);
+  //     return categorieData.map((data) => Categorie.fromJson(data)).toList();
+  //   } else {
+  //     throw Exception('Failed to load categories');
+  //   }
+  // }
+
+  Future<List<Categorie>> fetchCategories() async {
+    if (GlobalState().categorieFirstInitialize) {
+      print("Utilisation de la base de données locale pour les categories.");
+      final localCategories = await _databaseHelper.fetchCategories();
+      return localCategories.map((e) => Categorie.fromJson(e)).toList();
     } else {
-      throw Exception('Failed to load categories');
+      print("Utilisation API pour les categories.");
+      final response = await http.get(Uri.parse(categorieApiUrl));
+      if (response.statusCode == 200) {
+        final List<dynamic> categoriesData = json.decode(response.body);
+        return categoriesData.map((data) => Categorie.fromJson(data)).toList();
+      } else {
+        throw Exception('Failed to load categories');
+      }
     }
   }
 
-  // Future<List<Categorie>> fetchCategories() async {
-  //   if (GlobalState().firstInitialize) {
-  //     print("Utilisation de la base de données locale pour les categories.");
-  //     final localCategories = await _databaseHelper.fetchTasks();
-  //     return localCategories.map((e) => Categorie.fromJson(e)).toList();
-  //   } else {
-  //     final response = await http.get(Uri.parse(categorieApiUrl));
-  //     if (response.statusCode == 200) {
-  //       final List<dynamic> categorieata = json.decode(response.body);
-  //       return categorieata.map((data) => Categorie.fromJson(data)).toList();
-  //     } else {
-  //       throw Exception('Failed to load tasks');
-  //     }
-  //   }
-  // }
-  static Future<void> addCategory(Map<String, dynamic> categoryData) async {
-    final response = await http.post(
-      Uri.parse(categorieApiUrl),
-      headers: {'Content-Type': 'application/json'},
-      body: json.encode(categoryData),
-    );
-    if (response.statusCode != 201) {
-      throw Exception('Failed to add category: ${response.body}');
+//   static Future<void> addCategory(Map<String, dynamic> categoryData) async {
+//     final response = await http.post(
+//       Uri.parse(categorieApiUrl),
+//       headers: {'Content-Type': 'application/json'},
+//       body: json.encode(categoryData),
+//     );
+//     if (response.statusCode != 201) {
+//       throw Exception('Failed to add category: ${response.body}');
+//     }
+//   }
+
+  Future<void> addCategory(Map<String, dynamic> categorie) async {
+    // print(categorie);
+    if (GlobalState().categorieFirstInitialize &&
+        GlobalState().categorieApiInitialize == false) {
+      print("Ajout de la categorie dans la base locale.");
+      GlobalState().localDBAutoIncrement++;
+      String newId = "listo${GlobalState().localDBAutoIncrement}";
+      print(newId);
+      categorie['id'] = newId;
+      categorie['is_synced'] = "0";
+      categorie['isNew'] = "1";
+      categorie['isUpdated'] = "0";
+      categorie['isDeleted'] = "0";
+      print(categorie);
+      await _databaseHelper.insertCategorie(categorie);
+    } else {
+      print("Ajout de la categorie via l'API distante.");
+      List<String> keysToRemove = [
+        'is_synced',
+        'isNew',
+        'isUpdated',
+        'isDeleted'
+      ];
+
+      for (var key in keysToRemove) {
+        categorie.remove(key);
+      }
+      final response = await http.post(
+        Uri.parse(taskApiUrl),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode(categorie),
+      );
+      if (response.statusCode != 201) {
+        throw Exception('Failed to add task: ${response.body}');
+      } else {
+        final responseData = json.decode(response.body);
+        final String idFromApi = responseData['id']; // Récupération de l'ID
+        print('categorie ajouté avec success  ID: $idFromApi');
+        await _databaseHelper.delete(categorie['id'], 'categories');
+        categorie['id'] = idFromApi;
+        GlobalState().newIdFromApi = idFromApi;
+        categorie['isNew'] = 0;
+        // print(taskData['isUpdated']);
+        if (categorie['isUpdated'] == null || categorie['isUpdated'] == 1) {
+          categorie['isUpdated'] = 0;
+          categorie['isDeleted'] = 0;
+        }
+        categorie['is_synced'] = 0;
+        print(categorie);
+        await _databaseHelper.insertTaskUpdated(categorie);
+      }
+      GlobalState().categorieFirstInitialize = false;
     }
   }
 }

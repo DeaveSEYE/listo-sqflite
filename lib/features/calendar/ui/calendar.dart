@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:listo/core/utils/categorie.dart';
 import 'package:listo/core/utils/task_filter.dart';
 import 'package:listo/partials/Listview.dart';
 import 'package:table_calendar/table_calendar.dart';
@@ -7,8 +8,9 @@ import 'package:listo/core/utils/task.dart';
 
 class CalendarPage extends StatefulWidget {
   final List<Task> tasks; // Liste des tâches passée en paramètre
-
-  const CalendarPage({super.key, required this.tasks});
+  final List<Categorie> categories;
+  const CalendarPage(
+      {super.key, required this.tasks, required this.categories});
 
   @override
   State<CalendarPage> createState() => _CalendarPageState();
@@ -16,11 +18,13 @@ class CalendarPage extends StatefulWidget {
 
 class _CalendarPageState extends State<CalendarPage> {
   List<Task> filteredTasks = []; // Liste des tâches filtrées
+  List<Categorie> cat = []; // Liste des tâches filtrées
   @override
   void initState() {
     super.initState();
     // Initialiser avec toutes les tâches
     filteredTasks = widget.tasks;
+    cat = widget.categories;
   }
 
   DateTime _focusedDay = DateTime.now();
@@ -171,8 +175,8 @@ class _CalendarPageState extends State<CalendarPage> {
           // Affichage des tâches
           _selectedDay != null
               ? _getTasksForDay(_selectedDay!).isNotEmpty
-                  ? Listviews(_getTasksForDay(
-                      _selectedDay!)) // Utiliser Listviews pour afficher les tâches
+                  ? Listviews(_getTasksForDay(_selectedDay!),
+                      cat) // Utiliser Listviews pour afficher les tâches
                   : const Center(child: Text("Aucune tâche pour ce jour"))
               : const Center(child: Text("Veuillez sélectionner une date")),
         ],

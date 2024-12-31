@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:listo/core/api/service.dart';
+import 'package:listo/core/cubit/categorieCubit.dart';
 import 'package:listo/core/cubit/taskCubit.dart';
 import 'package:listo/core/theme/colors.dart';
-import 'package:listo/core/utils/categorie.dart';
 import 'package:listo/features/calendar/ui/calendar.dart';
 import 'package:listo/features/home/ui/home.dart';
 import 'package:listo/features/profile/ui/profile.dart';
@@ -21,38 +20,11 @@ class MainScaffold extends StatefulWidget {
 
 class _MainScaffoldState extends State<MainScaffold> {
   int _selectedIndex = 0;
-  bool isLoading = true;
-  List<Categorie> categories = []; // Liste des catégories
+
   void setCurrentIndex(int index) {
     setState(() {
       _selectedIndex = index;
     });
-  }
-
-  Future<void> _fetchCategories() async {
-    try {
-      final fetchedCategories = await ApiService.fetchCategories();
-      setState(() {
-        categories = fetchedCategories;
-        isLoading = false; // Fin du chargement
-      });
-    } catch (e) {
-      setState(() {
-        isLoading = false; // En cas d'erreur, mettre isLoading à false
-      });
-      // Afficher un message d'erreur
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-            content:
-                Text('Impossible de charger la liste des categories : $e')),
-      );
-    }
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    _fetchCategories(); // Charger les catégories lors de l'initialisation
   }
 
   @override
@@ -60,39 +32,65 @@ class _MainScaffoldState extends State<MainScaffold> {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: const CustomAppBar(),
-      body: BlocListener<TaskCubit, Data>(listener: (context, state) {
-        // Ce callback est appelé lorsque l'état du cubit est mis à jour
-        // Par exemple, après un appel à reload()
-        // if (state.tasks.isEmpty) {
-        // print("Aucune tâche disponible");
-        // }
-      }, child: BlocBuilder<TaskCubit, Data>(
-        builder: (context, state) {
-          if (state.isLoading) {
-            return const Center(child: CircularProgressIndicator());
-          } else if (state.tasks.isEmpty) {
-            return Center(
-              child: Text(
-                'Aucune tâche disponible.',
-                style: TextStyle(
-                  fontSize: 16,
-                  color: AppColors.primary,
-                ),
-              ),
+      body: MultiBlocListener(
+        listeners: [
+          BlocListener<TaskCubit, Data>(
+            listener: (context, state) {
+              // Gestion des événements du TaskCubit si nécessaire
+            },
+          ),
+          BlocListener<CategorieCubit, CatData>(
+            listener: (context, state) {
+              // Gestion des événements du CategorieCubit si nécessaire
+            },
+          ),
+        ],
+        child: BlocBuilder<TaskCubit, Data>(
+          builder: (context, taskState) {
+            return BlocBuilder<CategorieCubit, CatData>(
+              builder: (context, categorieState) {
+                // Affichage des indicateurs de chargement
+                if (taskState.isLoading || categorieState.isLoading) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+                // print(categorieState.categories);
+                // Gestion des listes vides
+                if (taskState.tasks.isEmpty ||
+                    categorieState.categories.isEmpty) {
+                  String msg = '';
+                  if (taskState.tasks.isEmpty) {
+                    msg = 'Aucune tâche ';
+                  }
+                  if (categorieState.categories.isEmpty) {
+                    msg += '${msg.isNotEmpty ? ' & ' : ''} Aucune catégorie';
+                  }
+                  msg += ' Disponible';
+                  return Center(
+                    child: Text(
+                      msg,
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: AppColors.primary,
+                      ),
+                    ),
+                  );
+                }
+
+                final tasks = taskState.tasks;
+                final categories = categorieState.categories;
+
+                // Contenu principal
+                return [
+                  Home(tasks: tasks, categories: categories),
+                  Tasklist(tasks: tasks, categories: categories),
+                  CalendarPage(tasks: tasks, categories: categories),
+                  const ProfileScreen(),
+                ][_selectedIndex];
+              },
             );
-          }
-          final tasks = state.tasks;
-          // print("daouda");
-          // print(tasks[0].title);
-          // print(tasks[0].isChecked);
-          return [
-            Home(tasks: tasks, categories: categories),
-            Tasklist(tasks: tasks, categories: categories),
-            CalendarPage(tasks: tasks),
-            const ProfileScreen(),
-          ][_selectedIndex];
-        },
-      )),
+          },
+        ),
+      ),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _selectedIndex,
         type: BottomNavigationBarType.fixed,
@@ -114,11 +112,17 @@ class _MainScaffoldState extends State<MainScaffold> {
           onPressed: () {
             TaskModal(
               context: context,
-              taskCubit:
-                  context.read<TaskCubit>(), // Pass the TaskCubit instance
-              categories: categories,
+              taskCubit: context.read<TaskCubit>(), // Passer TaskCubit
+              categories: context
+                  .read<CategorieCubit>()
+                  .state
+                  .categories, // Passer les catégories
               task: null, // Tâche vide pour ajouter une nouvelle tâche
               onTaskAdded: (taskData) async {},
+              // onTaskAdded: (taskData) async {
+              // Ajouter une tâche via TaskCubit
+              // context.read<TaskCubit>().addTask(taskData);
+              // },
             ).showAddTaskModal();
           },
           icon: Icons.add,

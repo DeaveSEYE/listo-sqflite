@@ -10,12 +10,14 @@ import 'package:listo/partials/notification.dart';
 class TaskModal {
   final BuildContext context;
   final TaskCubit taskCubit; // Add this line
+  // final CategorieCubit categorieCubit;
   final Function onTaskAdded;
   final Task? task; // Laisser `task` nullable pour gérer le cas de l'ajout
   final List<Categorie> categories; // Liste des tâches passée en paramètre
   TaskModal({
     required this.context,
     required this.taskCubit, // Pass TaskCubit as a parameter
+    // required this.categorieCubit,
     required this.onTaskAdded,
     required this.categories,
     required this.task, // Initialisez avec la tâche existante

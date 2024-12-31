@@ -117,6 +117,7 @@ class _TasklistState extends State<Tasklist> {
                   key: ValueKey(widget
                       .tasks[index].id), // Passing a unique key for each item
                   task: widget.tasks[index],
+                  categories: widget.categories,
                   index: index,
                   onDelete: _onDelete,
                   onUpdate: _onUpdate,

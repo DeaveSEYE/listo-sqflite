@@ -9,10 +9,11 @@ class ListCategories extends StatefulWidget {
   // final List<Task> tasks;
   final List<Categorie> categories; // Liste des tâches passée en paramètre
   final Function(String category, Color color) onCategorySelected;
-
+  // final CategorieCubit categorieCubit;
   const ListCategories({
     super.key,
     //required this.tasks,
+    // required this.categorieCubit,
     required this.categories,
     required this.onCategorySelected,
   });
@@ -22,6 +23,7 @@ class ListCategories extends StatefulWidget {
 }
 
 class _ListCategoriesState extends State<ListCategories> {
+  final apiService = ApiService(); // Instancie ApiService
   String? selectedCategory;
   Color? selectedCategoryColor;
   Map<String, Color> categories = {};
@@ -36,7 +38,12 @@ class _ListCategoriesState extends State<ListCategories> {
     final Map<String, Color> categories = {};
     for (var categorie in widget.categories) {
       if (!categories.containsKey(categorie.categorie)) {
-        categories[categorie.categorie] = categorie.categorieColor;
+        // Convertir la couleur de type String (hexadécimal) en type Color
+        final hexColor =
+            categorie.categorieColor.replaceFirst('#', ''); // Retirer le #
+        final color = Color(int.parse(hexColor, radix: 16) |
+            0xFF000000); // Ajouter l'opacité si manquante
+        categories[categorie.categorie] = color;
       }
     }
     return categories;
@@ -129,13 +136,15 @@ class _ListCategoriesState extends State<ListCategories> {
                 };
 
                 try {
-                  await ApiService.addCategory(categoryData);
+                  await apiService.addCategory(categoryData);
                   _addCategory(categoryName, selectedColor!);
+                  // final categorieCubit = context.read<CategorieCubit>();
+                  // await categorieCubit.reload();
                   Navigator.of(context).pop();
                 } catch (e) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
-                      content: Text("Erreur: $e"),
+                      content: Text("Erreur(s): $e"),
                     ),
                   );
                 }

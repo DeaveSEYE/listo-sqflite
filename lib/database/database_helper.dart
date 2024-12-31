@@ -70,15 +70,19 @@ class DatabaseHelper {
     print("Table 'tasks' créée.");
 
     await db.execute('''
-      CREATE TABLE categorie (
+      CREATE TABLE categories (
         id TEXT,
         categorie TEXT,
         categorieColor TEXT,
         createdAt DATE,
-        updatedAt DATE
+        updatedAt DATE,
+        is_synced BOOLEAN,
+        isNew BOOLEAN,
+        isUpdated BOOLEAN,
+        isDeleted BOOLEAN
       )
     ''');
-    print("Table 'categorie' créée.");
+    print("Table 'categories' créée.");
   }
 
   // Méthodes pour interagir avec la base de données
@@ -92,17 +96,17 @@ class DatabaseHelper {
     return await db.query('categories', where: 'isDeleted = 0');
   }
 
-  Future<void> clearTasks() async {
+  Future<void> clearDatabase(String table) async {
     print("NETTOYAGE DE LA BASE LOCALE ");
     final db = await database;
-    await db.delete('tasks');
-    print("NETTOYAGE DE LA BASE LOCALE TERMINER");
+    await db.delete(table);
+    print("NETTOYAGE DE LA BASE LOCALE $table TERMINER");
   }
 
-  Future<List<Task>> fetchTasksToSync() async {
+  Future<List<Task>> fetchTasksToSync(String table) async {
     final db = await database;
     final List<Map<String, dynamic>> maps =
-        await db.query('tasks', where: 'is_synced = 0');
+        await db.query(table, where: 'is_synced = 0');
     return List.generate(maps.length, (i) => Task.fromJson(maps[i]));
   }
 
@@ -135,9 +139,24 @@ class DatabaseHelper {
     await db.update('tasks', task, where: 'id = ?', whereArgs: [task['id']]);
   }
 
-  Future<void> deleteTask(String taskId) async {
+  Future<void> delete(String taskId, String table) async {
     final db = await database;
-    await db.delete('tasks', where: 'id = ?', whereArgs: [taskId]);
-    print("TACHE AVEC ID  : ${taskId} SUPPRIMER AVEC SUCCESS DE LA BASE LOCAL");
+    await db.delete(table, where: 'id = ?', whereArgs: [taskId]);
+    print(
+        "${table} AVEC ID  : ${taskId} SUPPRIMER AVEC SUCCESS DE LA BASE LOCAL");
+  }
+
+  Future<void> insertCategorie(Map<String, dynamic> categorie) async {
+    // print('insertCategorie');
+    // print(categorie);
+    final db = await database;
+    await db.insert('categories', categorie);
+    if (GlobalState().categorieFirstInitialize) {
+      print(
+          "INSERTION NOUVELLE categorie DANS LA BASE LOCAL EFFECTUER AVEC SUCCESS");
+      print(categorie.toString());
+    } else {
+      print("categorie insérée provenant de l'API: $categorie");
+    }
   }
 }

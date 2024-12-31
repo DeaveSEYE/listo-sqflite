@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:listo/core/cubit/categorieCubit.dart';
 import 'package:listo/core/cubit/taskCubit.dart';
 import 'package:listo/features/login/ui/login.dart';
 import 'package:listo/features/register/ui/register.dart';
@@ -19,15 +20,22 @@ class Routes {
         return MaterialPageRoute(builder: (_) => const Register());
       case homePage:
         return MaterialPageRoute(
-          builder: (_) => BlocProvider(
-            create: (_) => TaskCubit(), // Fournir TaskCubit ici
+          builder: (_) => MultiBlocProvider(
+            providers: [
+              BlocProvider(create: (_) => CategorieCubit()),
+              BlocProvider(create: (_) => TaskCubit()),
+            ],
             child: const MainScaffold(),
           ),
         );
+
       default:
         return MaterialPageRoute(
-          builder: (_) => BlocProvider(
-            create: (_) => TaskCubit(), // Fournir TaskCubit ici
+          builder: (_) => MultiBlocProvider(
+            providers: [
+              BlocProvider(create: (_) => CategorieCubit()),
+              BlocProvider(create: (_) => TaskCubit()),
+            ],
             child: const MainScaffold(),
           ),
         );

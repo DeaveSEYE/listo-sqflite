@@ -1,7 +1,9 @@
 class GlobalState {
   static final GlobalState _instance = GlobalState._internal();
   bool firstInitialize = false;
+  bool categorieFirstInitialize = false;
   bool apiInitialize = false;
+  bool categorieApiInitialize = false;
   int localDBAutoIncrement = 0;
   String newIdFromApi = "";
 

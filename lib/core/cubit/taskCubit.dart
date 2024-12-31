@@ -19,12 +19,12 @@ bool _isFetchingTasks = false;
 class TaskCubit extends Cubit<Data> {
   final DatabaseHelper _databaseHelper = DatabaseHelper();
   final apiService = ApiService(); // Instancie ApiService
-  TaskCubit() : super(Data([])) {
-    _fetchTasks(); // Charger les tâches lors de l'initialisation
-    // _syncLocalDataWithApi(); // Start syncing local data to API periodically
+  TaskCubit() : super(Data([], isLoading: false)) {
+    _getData(); // Charger les tâches lors de l'initialisation
+    _syncLocalTaskWithApi(); // Start syncing local data to API periodically
   }
 
-  Future<void> _fetchTasks() async {
+  Future<void> _getData() async {
     // Si une opération est déjà en cours, on retourne immédiatement
     while (_isFetchingTasks) {
       await Future.delayed(Duration(milliseconds: 100));
@@ -57,11 +57,10 @@ class TaskCubit extends Cubit<Data> {
     try {
       // Récupérer les tâches depuis l'API
       final fetchedTasks = await apiService.fetchTasks();
-      // final fetchedCategories = await apiService.fetchCategories();
       print('Tâches récupérées depuis l’API : ${fetchedTasks.length}');
 
       // Effacer les anciennes tâches dans la base locale
-      await _databaseHelper.clearTasks();
+      await _databaseHelper.clearDatabase("tasks");
       print('Base locale effacée.');
 
       // Sauvegarder les nouvelles tâches dans la base locale
@@ -69,9 +68,10 @@ class TaskCubit extends Cubit<Data> {
         await _databaseHelper.insertTask(task.toJson());
         print('Tâche sauvegardée localement : ${task.toJson()}');
       }
-
       // Mettre à jour l'état avec les nouvelles tâches
+      // emit(Data(fetchedTasks, isLoading: false));
       emit(Data(fetchedTasks, isLoading: false));
+
       GlobalState().firstInitialize = true; // Mettre à jour l'état global
       print('Toutes les tâches ont été sauvegardées dans la base locale.');
 
@@ -111,24 +111,24 @@ class TaskCubit extends Cubit<Data> {
 
   Future<void> reload() async {
     emit(Data([], isLoading: true));
-    await _fetchTasks();
+    await _getData();
     emit(Data(state.tasks, isLoading: false));
   }
 
   // Sync vers l'api toute les 5minutes
-  void _syncLocalDataWithApi() {
+  void _syncLocalTaskWithApi() {
     Timer.periodic(Duration(minutes: 1), (timer) async {
       if (await isInternetAvailable()) {
         print(
             "Internet connecté. Tentative de synchronisation des données locales...");
         GlobalState().apiInitialize = true;
-        await _syncDataToApi();
+        await _syncTaskToApi();
         GlobalState().apiInitialize = false;
       }
     });
   }
 
-  Future<void> _syncDataToApi() async {
+  Future<void> _syncTaskToApi() async {
     // Si une opération est déjà en cours, on retourne immédiatement
     while (_isFetchingTasks) {
       await Future.delayed(Duration(milliseconds: 100));
@@ -138,7 +138,7 @@ class TaskCubit extends Cubit<Data> {
     _isFetchingTasks = true;
     try {
       final tasksToSync = await _databaseHelper
-          .fetchTasksToSync(); // recuperer les taches non synchronisés
+          .fetchTasksToSync("tasks"); // recuperer les taches non synchronisés
       print('NOMBRE TACHE A SYNCHRONISER');
       print(tasksToSync.length);
       for (var task in tasksToSync) {
@@ -148,7 +148,7 @@ class TaskCubit extends Cubit<Data> {
           if (task.isDeleted == true) {
             print(
                 "Tache deja supprimer de la base local donc pas besoin de faire push api distant");
-            await deleteTask(task);
+            await deleteTask(task, 'tasks');
             return;
           } else if (task.isUpdated == true) {
             print(
@@ -198,9 +198,9 @@ class TaskCubit extends Cubit<Data> {
     await _databaseHelper.updateTask(task.toJson());
   }
 
-  Future<void> deleteTask(Task task) async {
+  Future<void> deleteTask(Task task, String table) async {
     task.isDeleted = true;
-    await _databaseHelper.deleteTask(task.id);
+    await _databaseHelper.delete(task.id, table);
   }
 }
 

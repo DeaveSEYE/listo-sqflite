@@ -6,25 +6,50 @@ import 'package:flutter/material.dart';
 class Categorie {
   final String id;
   final String categorie;
-  final Color categorieColor;
+  final String categorieColor;
   final String createdAt;
   final String updatedAt;
+  bool isNew;
+  bool isUpdated;
+  bool isDeleted;
 
-  Categorie(
-      {required this.id,
-      required this.categorie,
-      required this.categorieColor,
-      required this.createdAt,
-      required this.updatedAt});
+  Categorie({
+    required this.id,
+    required this.categorie,
+    required this.categorieColor,
+    required this.createdAt,
+    required this.updatedAt,
+    this.isNew = false,
+    this.isUpdated = false,
+    this.isDeleted = false,
+  });
+
   factory Categorie.fromJson(Map<String, dynamic> json) {
+    // print("Categorie.fromJson");
+    // print(json['categorie']);
     return Categorie(
       id: json['id'],
       categorie: json['categorie'],
-      categorieColor:
-          getColorFromName(json['categorieColor']), // Conversion ici
+      categorieColor: json['categorieColor'], // Conversion ici
       createdAt: json['createdAt'],
       updatedAt: json['updatedAt'],
+      isNew: json['isNew'] == 1, // Convertir en booléen
+      isUpdated: json['isUpdated'] == 1, // Convertir en booléen
+      isDeleted: json['isDeleted'] == 1, // Convertir en booléen
     );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'categorie': categorie,
+      'categorieColor': categorieColor, // Stockage de la couleur
+      'createdAt': createdAt,
+      'updatedAt': updatedAt,
+      'isNew': isNew ? 1 : 0, // Convertir en entier pour la base
+      'isUpdated': isUpdated ? 1 : 0, // Convertir en entier pour la base
+      'isDeleted': isDeleted ? 1 : 0, // Convertir en entier pour la base
+    };
   }
 }
 

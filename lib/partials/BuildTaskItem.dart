@@ -10,6 +10,8 @@ import 'package:listo/partials/notification.dart';
 
 class BuildTaskItem extends StatefulWidget {
   final Task task;
+  // final Categorie categories;
+   final List<Categorie> categories ;
   final int index;
   final Function(int) onDelete;
   final Function(int) onUpdate;
@@ -17,6 +19,7 @@ class BuildTaskItem extends StatefulWidget {
   const BuildTaskItem({
     super.key,
     required this.task,
+    required this.categories,
     required this.index,
     required this.onDelete,
     required this.onUpdate,
@@ -30,40 +33,12 @@ class _BuildTaskItemState extends State<BuildTaskItem> {
   final apiService = ApiService(); // Instancie ApiService
   late bool isChecked;
   List<Categorie> categories = []; // Liste des catégories
-  bool isLoading = true;
-
-  // Fonction de récupération des catégories
-  Future<void> _fetchCategories() async {
-    try {
-      final fetchedCategories = await ApiService.fetchCategories();
-      if (mounted) {
-        setState(() {
-          categories = fetchedCategories;
-          isLoading = false; // Fin du chargement
-        });
-      }
-    } catch (e) {
-      if (mounted) {
-        setState(() {
-          isLoading = false; // En cas d'erreur, mettre isLoading à false
-        });
-      }
-      // Afficher un message d'erreur
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Impossible de charger la liste des catégories : $e'),
-          ),
-        );
-      }
-    }
-  }
 
   @override
   void initState() {
     super.initState();
-    _fetchCategories(); // Charger les catégories lors de l'initialisation
     isChecked = widget.task.isChecked;
+    categories = widget.categories;
   }
 
   @override

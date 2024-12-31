@@ -133,7 +133,7 @@ class _HomeState extends State<Home> {
           ),
           const SizedBox(height: 05),
           // Listviews utilise filteredTasks
-          Listviews(filteredTasks),
+          Listviews(filteredTasks, widget.categories),
         ],
       ),
     );
