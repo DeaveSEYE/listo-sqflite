@@ -1,5 +1,5 @@
 // Import pour détecter la plateforme
-//import 'dart:io';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_signin_button/flutter_signin_button.dart'; //permet dafficher et gerer les boutton google et apple
@@ -137,23 +137,23 @@ class _LoginState extends State<Login> {
                 SizedBox(height: responsive.hp(3)),
                 const Text('Ou'),
                 SizedBox(height: responsive.hp(2)),
-                // if (Platform.isAndroid)
-                SignInButton(
-                  Buttons.Google,
-                  text: "Connexion avec Google",
-                  onPressed: () {
-                    // Action pour la connexion avec Google
-                  },
-                ),
+                if (Platform.isAndroid)
+                  SignInButton(
+                    Buttons.Google,
+                    text: "Connexion avec Google",
+                    onPressed: () {
+                      // Action pour la connexion avec Google
+                    },
+                  ),
                 SizedBox(height: responsive.hp(3)),
-                // if (Platform.isIOS)
-                SignInButton(
-                  Buttons.Apple,
-                  text: "Connexion avec Apple",
-                  onPressed: () {
-                    // Action pour la connexion avec Apple
-                  },
-                ),
+                if (Platform.isIOS)
+                  SignInButton(
+                    Buttons.Apple,
+                    text: "Connexion avec Apple",
+                    onPressed: () {
+                      // Action pour la connexion avec Apple
+                    },
+                  ),
                 SizedBox(height: responsive.hp(3)),
               ],
               Row(

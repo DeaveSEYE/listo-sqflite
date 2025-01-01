@@ -82,7 +82,8 @@ class CategorieCubit extends Cubit<CatData> {
       // print('Toutes les tâches ont été sauvegardées dans la base locale.');
 
       // Vérifier les tâches enregistrées localement
-      final localTasks = await _databaseHelper.fetchCategories();
+      final localTasks =
+          await _databaseHelper.fetchCategories(GlobalState().userId);
       print(
           "Nombre de categories récupérées depuis la base locale : ${localTasks.length}");
       for (var task in localTasks) {
@@ -103,7 +104,8 @@ class CategorieCubit extends Cubit<CatData> {
     //     "FIRST INITIALIZE DANS _fetchTasksFromLocal : ${GlobalState().firstInitialize}");
     try {
       // final localTasks = await _databaseHelper.fetchTasks();
-      final localCategories = await _databaseHelper.fetchCategories();
+      final localCategories =
+          await _databaseHelper.fetchCategories(GlobalState().userId);
       // print(localTasks);
       // final tasks = localTasks.map((e) => Task.fromJson(e)).toList();
       final categories =

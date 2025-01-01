@@ -20,11 +20,12 @@ class TaskCubit extends Cubit<Data> {
   final DatabaseHelper _databaseHelper = DatabaseHelper();
   final apiService = ApiService(); // Instancie ApiService
   TaskCubit() : super(Data([], isLoading: false)) {
-    _getData(); // Charger les tâches lors de l'initialisation
+    _getData(
+        GlobalState().userId); // Charger les tâches lors de l'initialisation
     _syncLocalTaskWithApi(); // Start syncing local data to API periodically
   }
 
-  Future<void> _getData() async {
+  Future<void> _getData(String userId) async {
     // Si une opération est déjà en cours, on retourne immédiatement
     while (_isFetchingTasks) {
       await Future.delayed(Duration(milliseconds: 100));
@@ -37,11 +38,11 @@ class TaskCubit extends Cubit<Data> {
       if (!GlobalState().firstInitialize) {
         print("DEBUT PROCESS : RECUPERATION DES TACHES DEPUIS L'API");
 
-        await _fetchTasksFromApi();
+        await _fetchTasksFromApi(userId);
         print("FIN PROCESS : RECUPERATION DES TACHES DEPUIS L'API");
       } else {
         print("DEBUT PROCESS : RECUPERATION DES TACHES DEPUIS BASE LOCAL");
-        await _fetchTasksFromLocal();
+        await _fetchTasksFromLocal(userId);
         print("FIN PROCESS : RECUPERATION DES TACHES DEPUIS BASE LOCAL");
       }
     } catch (e) {
@@ -52,7 +53,7 @@ class TaskCubit extends Cubit<Data> {
     }
   }
 
-  Future<void> _fetchTasksFromApi() async {
+  Future<void> _fetchTasksFromApi(String userId) async {
     emit(Data([], isLoading: true)); // Indiquer que le chargement commence
     try {
       // Récupérer les tâches depuis l'API
@@ -76,7 +77,7 @@ class TaskCubit extends Cubit<Data> {
       print('Toutes les tâches ont été sauvegardées dans la base locale.');
 
       // Vérifier les tâches enregistrées localement
-      final localTasks = await _databaseHelper.fetchTasks();
+      final localTasks = await _databaseHelper.fetchTasks(userId);
       print(
           "Nombre de tâches récupérées depuis la base locale : ${localTasks.length}");
       for (var task in localTasks) {
@@ -91,12 +92,12 @@ class TaskCubit extends Cubit<Data> {
     }
   }
 
-  Future<void> _fetchTasksFromLocal() async {
+  Future<void> _fetchTasksFromLocal(String userId) async {
     emit(Data([], isLoading: true));
     // print(
     //     "FIRST INITIALIZE DANS _fetchTasksFromLocal : ${GlobalState().firstInitialize}");
     try {
-      final localTasks = await _databaseHelper.fetchTasks();
+      final localTasks = await _databaseHelper.fetchTasks(userId);
       // print(localTasks);
       final tasks = localTasks.map((e) => Task.fromJson(e)).toList();
       emit(Data(tasks));
@@ -111,7 +112,7 @@ class TaskCubit extends Cubit<Data> {
 
   Future<void> reload() async {
     emit(Data([], isLoading: true));
-    await _getData();
+    await _getData(GlobalState().userId);
     emit(Data(state.tasks, isLoading: false));
   }
 

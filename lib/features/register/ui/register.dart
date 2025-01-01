@@ -1,14 +1,12 @@
-// permet de connaitre le systeme d'exploitation de l'appareil.
-
-//import 'dart:io';
-
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_signin_button/flutter_signin_button.dart';
-import 'package:listo/core/theme/colors.dart'; // class des couleur utiliser dans lapplication
-import 'package:listo/core/theme/widgets.dart'; //class des widgets reutilisable
-import 'package:listo/core/utils/responsive.dart'; //class pour rebdre les pages responsive
-
-import 'package:listo/features/login/ui/login.dart';
+import 'package:bcrypt/bcrypt.dart'; // Pour le hashage des mots de passe
+import 'package:listo/core/api/service.dart';
+import 'package:listo/core/global/global_state.dart';
+import 'package:listo/core/theme/colors.dart'; // Couleurs personnalisées
+import 'package:listo/core/utils/responsive.dart';
+import 'package:listo/partials/notification.dart'; // Classe responsive
 
 class Register extends StatefulWidget {
   const Register({super.key});
@@ -18,162 +16,220 @@ class Register extends StatefulWidget {
 }
 
 class _RegisterState extends State<Register> {
+  final apiService = ApiService();
+  final _formKey = GlobalKey<FormState>();
+  final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+  final TextEditingController _confirmPasswordController =
+      TextEditingController();
+
+  Future<void> _register() async {
+    if (_formKey.currentState!.validate()) {
+      final name = _nameController.text.trim();
+      final email = _emailController.text.trim();
+      final password = _passwordController.text.trim();
+
+      // Hashage du mot de passe avec bcrypt
+      final hashedPassword = BCrypt.hashpw(password, BCrypt.gensalt());
+
+      // Préparer les données pour l'API
+      final requestData = {
+        'user': name,
+        'email': email,
+        'password': hashedPassword,
+      };
+
+      // Envoyer les données à l'API
+      try {
+        await apiService.addUser(requestData);
+        Navigator.pushReplacementNamed(context, '/home');
+
+        NotificationHelper.showFlushbar(
+          // ignore: use_build_context_synchronously
+          context: context,
+          message: "Inscription réussie ",
+          type: NotificationType.success,
+        );
+      } catch (e) {
+        NotificationHelper.showFlushbar(
+          // ignore: use_build_context_synchronously
+          context: context,
+          message: "Verifier votre connextion internet ",
+          type: NotificationType.info,
+        );
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    final responsive = Responsive(context); // Initialiser Responsive
+    final responsive =
+        Responsive(context); // Pour rendre l'interface responsive
     final bool isCompact = responsive.height < 600;
+
     return Scaffold(
-      resizeToAvoidBottomInset:
-          false, // Désactive le redimensionnement automatique lié au clavier
+      resizeToAvoidBottomInset: false,
       backgroundColor: AppColors.background,
-      // appBar: PreferredSize(
-      //   preferredSize:
-      //       const Size.fromHeight(28), // Hauteur standard de l'AppBar
-      //   child: AppBar(
-      //     backgroundColor: AppColors.background,
-      //     iconTheme: const IconThemeData(
-      //       color: Color(0xFF6C9FEE), // Couleur bleue pour la flèche de retour
-      //     ),
-      //     leading: IconButton(
-      //       icon: const Icon(Icons.arrow_back), // Icône de la flèche de retour
-      //       onPressed: () {
-      //         Navigator.pop(context); // Action qui renvoie à la page précédente
-      //       },
-      //     ),
-      //   ),
-      // ),
-
       body: Padding(
-        padding: EdgeInsets.symmetric(
-            horizontal: responsive.wp(5)), // Padding horizontal responsive
-        child: Column(
-          children: <Widget>[
-            const Spacer(), // Ajoute de l'espacement pour recentrer les éléments si le clavier est visible
-            // Image.asset(
-            //   'lib/assets/img/register.png',
-            //   width: responsive.wp(60),
-            //   height: responsive.wp(50),
-            // ),
-            Icon(
-              Icons.supervised_user_circle_rounded,
-              size: responsive.wp(isCompact ? 10 : 20),
-              color: AppColors.primary,
-            ),
-            Text(
-              'Listo',
-              style: TextStyle(
-                color: AppColors.regular,
-                fontWeight: FontWeight.bold,
-                fontSize: responsive.fontSize(0.08),
+        padding: EdgeInsets.symmetric(horizontal: responsive.wp(5)),
+        child: Form(
+          key: _formKey,
+          child: Column(
+            children: <Widget>[
+              const Spacer(),
+              Icon(
+                Icons.supervised_user_circle_rounded,
+                size: responsive.wp(isCompact ? 10 : 20),
+                color: AppColors.primary,
               ),
-            ),
-            SizedBox(height: responsive.hp(0)),
-            Text(
-              'Créer un compte',
-              style: TextStyle(
-                color: AppColors.grey,
-                fontSize: responsive.fontSize(0.05),
+              Text(
+                'Listo',
+                style: TextStyle(
+                  color: AppColors.regular,
+                  fontWeight: FontWeight.bold,
+                  fontSize: responsive.fontSize(0.08),
+                ),
               ),
-            ),
-            SizedBox(height: responsive.hp(1)),
-            CustomTextFormField(
-              label: 'Prénom & Nom',
-              hint: 'Entrez votre nom complet',
-              icon: Icons.person,
-              responsive: responsive,
-            ),
-            SizedBox(height: responsive.hp(2)), // Espace vertical responsive
-            CustomTextFormField(
-              label: 'Email ou Nom utilisateur',
-              hint: 'Entrez un identifiant',
-              icon: Icons.email,
-              responsive: responsive,
-            ),
-            SizedBox(height: responsive.hp(2)),
-            CustomTextFormField(
-              label: 'Mot de passe',
-              hint: 'Entrez votre mot de passe',
-              icon: Icons.lock,
-              isPassword: true,
-              responsive: responsive,
-            ),
-            SizedBox(height: responsive.hp(2)),
-            CustomTextFormField(
-              label: 'Confirmer Mot de passe',
-              hint: 'Entrez à nouveau',
-              icon: Icons.lock,
-              isPassword: true,
-              responsive: responsive,
-            ),
-            SizedBox(height: responsive.hp(3)),
-            CustomElevatedButton(
-              text: "S'inscrire",
-              onPressed: () {
-                // Navigator.pushNamed(context, Routes.homePage);
-                //MaterialPageRoute(
-                //builder: (context) => Home(tasks: tasks),
-                //);
-                //MaterialPageRoute(
-                //builder: (context) => const MainScaffold(),
-                //);
-
-                /// Navigator.push(
-                //context,
-                //MaterialPageRoute(
-                //builder: (context) => const Home(),
-                //),
-                //);
-              },
-              color: Colors.blue, // Couleur du bouton
-              responsive: responsive, // Instance de Responsive
-              borderRadius: 20.0, // Coins arrondis
-              padding: EdgeInsets.symmetric(
-                  vertical: responsive.hp(2),
-                  horizontal: responsive.wp(10)), // Padding personnalisé
-            ),
-            SizedBox(height: responsive.hp(3)),
-            const Text('Ou'),
-            SizedBox(height: responsive.hp(2)),
-            // if (Platform.isAndroid)
-            SignInButton(
-              Buttons.Google,
-              text: "S'inscrire avec Google",
-              onPressed: () {},
-            ),
-            SizedBox(height: responsive.hp(3)),
-            // if (Platform.isIOS)
-            SignInButton(
-              Buttons.Apple,
-              text: "S'inscrire avec Apple",
-              onPressed: () {},
-            ),
-            SizedBox(height: responsive.hp(3)),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Text('Déjà inscrit? '),
-                GestureDetector(
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const Login(),
-                      ),
-                    );
-                  },
-                  child: Text(
-                    'Se connecter',
-                    style: TextStyle(
-                      color: const Color(0xFF6C9FEE),
-                      fontWeight: FontWeight.bold,
-                      fontSize: responsive.fontSize(0.04),
-                    ),
+              Text(
+                'Créer un compte',
+                style: TextStyle(
+                  color: AppColors.grey,
+                  fontSize: responsive.fontSize(0.05),
+                ),
+              ),
+              SizedBox(height: responsive.hp(2)),
+              TextFormField(
+                controller: _nameController,
+                decoration: InputDecoration(
+                  labelText: 'Prénom & Nom',
+                  hintText: 'Entrez votre nom complet',
+                  prefixIcon: const Icon(Icons.person),
+                  border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10)),
+                ),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Veuillez entrer votre nom';
+                  }
+                  return null;
+                },
+              ),
+              SizedBox(height: responsive.hp(2)),
+              TextFormField(
+                controller: _emailController,
+                decoration: InputDecoration(
+                  labelText: 'Email ou Nom utilisateur',
+                  hintText: 'Entrez un identifiant',
+                  prefixIcon: const Icon(Icons.email),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
                   ),
                 ),
-              ],
-            ),
-            const Spacer(),
-          ],
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Veuillez entrer un email valide';
+                  }
+
+                  // Vérification avec RegExp pour un email valide
+                  final emailRegex = RegExp(
+                    r"^[a-zA-Z0-9.a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$",
+                  );
+                  if (!emailRegex.hasMatch(value)) {
+                    return 'Format de l\'email incorrect';
+                  }
+
+                  return null;
+                },
+              ),
+              SizedBox(height: responsive.hp(2)),
+              TextFormField(
+                controller: _passwordController,
+                obscureText: true,
+                decoration: InputDecoration(
+                  labelText: 'Mot de passe',
+                  hintText: 'Entrez votre mot de passe',
+                  prefixIcon: const Icon(Icons.lock),
+                  border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10)),
+                ),
+                validator: (value) {
+                  if (value == null || value.length < 6) {
+                    return 'Le mot de passe doit contenir au moins 6 caractères';
+                  }
+                  return null;
+                },
+              ),
+              SizedBox(height: responsive.hp(2)),
+              TextFormField(
+                controller: _confirmPasswordController,
+                obscureText: true,
+                decoration: InputDecoration(
+                  labelText: 'Confirmer Mot de passe',
+                  hintText: 'Entrez à nouveau',
+                  prefixIcon: const Icon(Icons.lock),
+                  border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10)),
+                ),
+                validator: (value) {
+                  if (value != _passwordController.text) {
+                    return 'Les mots de passe ne correspondent pas';
+                  }
+                  return null;
+                },
+              ),
+              SizedBox(height: responsive.hp(3)),
+              ElevatedButton(
+                onPressed: _register,
+                child: const Text("S'inscrire"),
+                style: ElevatedButton.styleFrom(
+                  padding: EdgeInsets.symmetric(
+                    vertical: responsive.hp(2),
+                    horizontal: responsive.wp(10),
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                ),
+              ),
+              SizedBox(height: responsive.hp(3)),
+              const Text('Ou'),
+              SizedBox(height: responsive.hp(2)),
+              if (Platform.isAndroid)
+                SignInButton(
+                  Buttons.Google,
+                  text: "S'inscrire avec Google",
+                  onPressed: () {},
+                ),
+              if (Platform.isIOS)
+                SignInButton(
+                  Buttons.Apple,
+                  text: "S'inscrire avec Apple",
+                  onPressed: () {},
+                ),
+              SizedBox(height: responsive.hp(3)),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Text('Déjà inscrit? '),
+                  GestureDetector(
+                    onTap: () {
+                      Navigator.pop(context);
+                    },
+                    child: Text(
+                      'Se connecter',
+                      style: TextStyle(
+                        color: const Color(0xFF6C9FEE),
+                        fontWeight: FontWeight.bold,
+                        fontSize: responsive.fontSize(0.04),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const Spacer(),
+            ],
+          ),
         ),
       ),
     );

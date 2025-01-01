@@ -17,8 +17,10 @@ class DatabaseHelper {
 
   // Méthode pour récupérer la base de données
   Future<Database> get database async {
+    // print(_database);
     if (_database != null) return _database!;
     _database = await _initializeDatabase();
+    GlobalState().DBChecker = true;
     return _database!;
   }
 
@@ -82,18 +84,44 @@ class DatabaseHelper {
         isDeleted BOOLEAN
       )
     ''');
-    print("Table 'categories' créée.");
+    print("Table 'users' créée.");
+
+    await db.execute('''
+      CREATE TABLE users (
+        id TEXT,
+        user TEXT,
+        email TEXT,
+        password TEXT,
+        createdAt DATE DEFAULT (datetime('now')),
+        updatedAt DATE DEFAULT '',
+        is_synced BOOLEAN DEFAULT 0
+      )
+    ''');
+    print("Table 'users' créée.");
   }
 
   // Méthodes pour interagir avec la base de données
-  Future<List<Map<String, dynamic>>> fetchTasks() async {
+  Future<List<Map<String, dynamic>>> fetchTasks(String userId) async {
     final db = await database;
-    return await db.query('tasks', where: 'isDeleted = 0');
+    return await db.query(
+      'tasks',
+      where: 'isDeleted = 0 AND userId = ?',
+      whereArgs: [userId],
+    );
   }
 
-  Future<List<Map<String, dynamic>>> fetchCategories() async {
+  Future<List<Map<String, dynamic>>> fetchCategories(String userId) async {
     final db = await database;
-    return await db.query('categories', where: 'isDeleted = 0');
+    return await db.query(
+      'categories',
+      where: 'isDeleted = 0 AND userId = ?',
+      whereArgs: [userId],
+    );
+  }
+
+  Future<List<Map<String, dynamic>>> fetchUsers() async {
+    final db = await database;
+    return await db.query('users');
   }
 
   Future<void> clearDatabase(String table) async {
@@ -126,6 +154,11 @@ class DatabaseHelper {
     } else {
       print("Tâche insérée provenant de l'API: $task");
     }
+  }
+
+  Future<void> insertUser(Map<String, dynamic> user) async {
+    final db = await database;
+    await db.insert('users', user);
   }
 
   Future<void> insertTaskUpdated(Map<String, dynamic> task) async {

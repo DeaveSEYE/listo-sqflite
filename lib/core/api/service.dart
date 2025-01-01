@@ -10,11 +10,11 @@ class ApiService {
   static const String taskApiUrl = 'https://task-api-firebase.vercel.app/tasks';
   static const String categorieApiUrl =
       'https://task-api-firebase.vercel.app/categories';
-
+  static const String userApiUrl = 'https://task-api-firebase.vercel.app/users';
   Future<List<Task>> fetchTasks() async {
     if (GlobalState().firstInitialize) {
       print("Utilisation de la base de données locale pour les tâches.");
-      final localTasks = await _databaseHelper.fetchTasks();
+      final localTasks = await _databaseHelper.fetchTasks(GlobalState().userId);
       return localTasks.map((e) => Task.fromJson(e)).toList();
     } else {
       final response = await http.get(Uri.parse(taskApiUrl));
@@ -25,6 +25,27 @@ class ApiService {
         throw Exception('Failed to load tasks');
       }
     }
+  }
+
+  Future<void> addUser(Map<String, dynamic> user) async {
+    // print(user);
+    // GlobalState().localDBAutoIncrement++;
+    // String newId = "listo${GlobalState().localDBAutoIncrement}";
+    // user['id'] = newId;
+    // print(user);
+    final response = await http.post(
+      Uri.parse(userApiUrl),
+      headers: {'Content-Type': 'application/json'},
+      body: json.encode(user),
+    );
+    if (response.statusCode != 201) {
+      throw Exception('Failed to add task: ${response.body}');
+    } else {
+      final responseData = json.decode(response.body);
+      user['id'] = responseData['id'];
+      await _databaseHelper.insertUser(user);
+    }
+    GlobalState().userId = user['id'];
   }
 
   Future<void> addTask(Map<String, dynamic> taskData) async {
@@ -226,7 +247,8 @@ class ApiService {
   Future<List<Categorie>> fetchCategories() async {
     if (GlobalState().categorieFirstInitialize) {
       print("Utilisation de la base de données locale pour les categories.");
-      final localCategories = await _databaseHelper.fetchCategories();
+      final localCategories =
+          await _databaseHelper.fetchCategories(GlobalState().userId);
       return localCategories.map((e) => Categorie.fromJson(e)).toList();
     } else {
       print("Utilisation API pour les categories.");
