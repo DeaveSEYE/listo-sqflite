@@ -22,7 +22,7 @@ class TaskCubit extends Cubit<Data> {
   TaskCubit() : super(Data([], isLoading: false)) {
     _getData(
         GlobalState().userId); // Charger les tâches lors de l'initialisation
-    _syncLocalTaskWithApi(); // Start syncing local data to API periodically
+    // _syncLocalTaskWithApi(); // Start syncing local data to API periodically
   }
 
   Future<void> _getData(String userId) async {
@@ -54,10 +54,12 @@ class TaskCubit extends Cubit<Data> {
   }
 
   Future<void> _fetchTasksFromApi(String userId) async {
+    print("userId");
+    print(userId);
     emit(Data([], isLoading: true)); // Indiquer que le chargement commence
     try {
       // Récupérer les tâches depuis l'API
-      final fetchedTasks = await apiService.fetchTasks();
+      final fetchedTasks = await apiService.fetchTasks(userId);
       print('Tâches récupérées depuis l’API : ${fetchedTasks.length}');
 
       // Effacer les anciennes tâches dans la base locale

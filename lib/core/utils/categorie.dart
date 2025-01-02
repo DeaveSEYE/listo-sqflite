@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 // Categorie model
 class Categorie {
   final String id;
+  final String userId;
   final String categorie;
   final String categorieColor;
   final String createdAt;
@@ -15,6 +16,7 @@ class Categorie {
 
   Categorie({
     required this.id,
+    required this.userId,
     required this.categorie,
     required this.categorieColor,
     required this.createdAt,
@@ -29,6 +31,7 @@ class Categorie {
     // print(json['categorie']);
     return Categorie(
       id: json['id'],
+      userId: json['userId'],
       categorie: json['categorie'],
       categorieColor: json['categorieColor'], // Conversion ici
       createdAt: json['createdAt'],
@@ -42,6 +45,7 @@ class Categorie {
   Map<String, dynamic> toJson() {
     return {
       'id': id,
+      'userId': userId,
       'categorie': categorie,
       'categorieColor': categorieColor, // Stockage de la couleur
       'createdAt': createdAt,

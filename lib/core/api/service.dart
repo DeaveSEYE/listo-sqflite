@@ -11,10 +11,10 @@ class ApiService {
   static const String categorieApiUrl =
       'https://task-api-firebase.vercel.app/categories';
   static const String userApiUrl = 'https://task-api-firebase.vercel.app/users';
-  Future<List<Task>> fetchTasks() async {
+  Future<List<Task>> fetchTasks(String userId) async {
     if (GlobalState().firstInitialize) {
       print("Utilisation de la base de données locale pour les tâches.");
-      final localTasks = await _databaseHelper.fetchTasks(GlobalState().userId);
+      final localTasks = await _databaseHelper.fetchTasks(userId);
       return localTasks.map((e) => Task.fromJson(e)).toList();
     } else {
       final response = await http.get(Uri.parse(taskApiUrl));
@@ -50,6 +50,7 @@ class ApiService {
 
   Future<void> addTask(Map<String, dynamic> taskData) async {
     print(taskData);
+    taskData['userId'] = GlobalState().userId;
     // print(
     //     "GlobalState().firstInitialize  : ${GlobalState().firstInitialize}  & GlobalState().apiInitialize ; ${GlobalState().apiInitialize}");
     if (GlobalState().firstInitialize && GlobalState().apiInitialize == false) {
@@ -107,6 +108,7 @@ class ApiService {
   }
 
   Future<void> deleteTask(Map<String, dynamic> task) async {
+    task['userId'] = GlobalState().userId;
     if (GlobalState().firstInitialize && GlobalState().apiInitialize == false) {
       // print(
       //     "FIRST INITIALIZE dans deleteTask : ${GlobalState().firstInitialize}");
@@ -145,6 +147,7 @@ class ApiService {
   }
 
   Future<void> updateTask(String taskId, Map<String, dynamic> taskData) async {
+    taskData['userId'] = GlobalState().userId;
     // print(taskData);
     if (GlobalState().firstInitialize && GlobalState().apiInitialize == false) {
       print("Mise à jour de la tâche dans la base locale.");
@@ -189,6 +192,7 @@ class ApiService {
   }
 
   Future<void> check(bool isChecked, Map<String, dynamic> taskData) async {
+    taskData['userId'] = GlobalState().userId;
     // print(taskData);
     if (GlobalState().firstInitialize && GlobalState().apiInitialize == false) {
       print(
@@ -244,11 +248,10 @@ class ApiService {
   //   }
   // }
 
-  Future<List<Categorie>> fetchCategories() async {
+  Future<List<Categorie>> fetchCategories(String userId) async {
     if (GlobalState().categorieFirstInitialize) {
       print("Utilisation de la base de données locale pour les categories.");
-      final localCategories =
-          await _databaseHelper.fetchCategories(GlobalState().userId);
+      final localCategories = await _databaseHelper.fetchCategories(userId);
       return localCategories.map((e) => Categorie.fromJson(e)).toList();
     } else {
       print("Utilisation API pour les categories.");
@@ -275,6 +278,7 @@ class ApiService {
 
   Future<void> addCategory(Map<String, dynamic> categorie) async {
     // print(categorie);
+    categorie['userId'] = GlobalState().userId;
     if (GlobalState().categorieFirstInitialize &&
         GlobalState().categorieApiInitialize == false) {
       print("Ajout de la categorie dans la base locale.");

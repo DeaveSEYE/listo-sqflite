@@ -7,6 +7,7 @@ class GlobalState {
   bool categorieApiInitialize = false;
   int localDBAutoIncrement = 0;
   String userId = '';
+  // String userId = 'yQVulGUaY0DhKz00JbRP';
   String newIdFromApi = "";
 
   factory GlobalState() {

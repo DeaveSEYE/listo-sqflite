@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 // Task model
 class Task {
   final String id;
+  final String userId;
   final String title;
   final String categorie;
   final String description;
@@ -19,6 +20,7 @@ class Task {
 
   Task({
     required this.id,
+    required this.userId,
     required this.title,
     required this.description,
     required this.createdAt,
@@ -37,6 +39,7 @@ class Task {
   Map<String, dynamic> toJson() {
     return {
       'id': id,
+      'userId': userId,
       'title': title,
       'categorie': categorie,
       'description': description,
@@ -58,6 +61,7 @@ class Task {
     print(json['isChecked']);
     return Task(
       id: json['id'],
+      userId: json['userId'],
       title: json['title'],
       description: json['description'],
       createdAt: json['createdAt'],

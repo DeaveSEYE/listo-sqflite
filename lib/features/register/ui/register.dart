@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_signin_button/flutter_signin_button.dart';
 import 'package:bcrypt/bcrypt.dart'; // Pour le hashage des mots de passe
 import 'package:listo/core/api/service.dart';
-import 'package:listo/core/global/global_state.dart';
 import 'package:listo/core/theme/colors.dart'; // Couleurs personnalisées
 import 'package:listo/core/utils/responsive.dart';
 import 'package:listo/partials/notification.dart'; // Classe responsive

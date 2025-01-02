@@ -54,15 +54,16 @@ class DatabaseHelper {
     await db.execute('''
       CREATE TABLE tasks (
          id TEXT,
+         userId TEXT,
         title TEXT NOT NULL,
         categorie TEXT,
         description TEXT,
         priority TEXT,
         isChecked BOOLEAN,
         categorieColor TEXT,
-        createdAt DATE,
-        updatedAt DATE, 
-        dueDate DATE,
+        createdAt DATE DEFAULT (datetime('now')),
+        updatedAt DATE DEFAULT (datetime('now')),
+        dueDate DATE DEFAULT (datetime('now')),
         is_synced BOOLEAN,
         isNew BOOLEAN,
         isUpdated BOOLEAN,
@@ -74,10 +75,11 @@ class DatabaseHelper {
     await db.execute('''
       CREATE TABLE categories (
         id TEXT,
+        userId TEXT,
         categorie TEXT,
         categorieColor TEXT,
-        createdAt DATE,
-        updatedAt DATE,
+        createdAt DATE DEFAULT (datetime('now')),
+        updatedAt DATE DEFAULT (datetime('now')),
         is_synced BOOLEAN,
         isNew BOOLEAN,
         isUpdated BOOLEAN,
@@ -93,7 +95,7 @@ class DatabaseHelper {
         email TEXT,
         password TEXT,
         createdAt DATE DEFAULT (datetime('now')),
-        updatedAt DATE DEFAULT '',
+        updatedAt DATE DEFAULT (datetime('now')),
         is_synced BOOLEAN DEFAULT 0
       )
     ''');
