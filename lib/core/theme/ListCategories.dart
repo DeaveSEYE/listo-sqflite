@@ -6,14 +6,10 @@ import 'package:listo/core/theme/colors.dart';
 import 'package:listo/core/utils/categorie.dart';
 
 class ListCategories extends StatefulWidget {
-  // final List<Task> tasks;
   final List<Categorie> categories; // Liste des tâches passée en paramètre
   final Function(String category, Color color) onCategorySelected;
-  // final CategorieCubit categorieCubit;
   const ListCategories({
     super.key,
-    //required this.tasks,
-    // required this.categorieCubit,
     required this.categories,
     required this.onCategorySelected,
   });

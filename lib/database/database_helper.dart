@@ -86,7 +86,7 @@ class DatabaseHelper {
         isDeleted BOOLEAN
       )
     ''');
-    print("Table 'users' créée.");
+    print("Table 'categories' créée.");
 
     await db.execute('''
       CREATE TABLE users (
@@ -94,6 +94,9 @@ class DatabaseHelper {
         user TEXT,
         email TEXT,
         password TEXT,
+        auth_source TEXT,
+        auth_id TEXT,
+        photoUrl TEXT,
         createdAt DATE DEFAULT (datetime('now')),
         updatedAt DATE DEFAULT (datetime('now')),
         is_synced BOOLEAN DEFAULT 0
@@ -131,6 +134,29 @@ class DatabaseHelper {
     final db = await database;
     await db.delete(table);
     print("NETTOYAGE DE LA BASE LOCALE $table TERMINER");
+  }
+
+  Future<void> logout() async {
+    final db = await database;
+    String table = '';
+    // Vider la table sans supprimer la structure
+    table = 'users';
+    await db.execute('DELETE FROM $table');
+    print("SUPPRESSION DES DONNES DE LA TABLE  $table TERMINER");
+    table = 'tasks';
+    await db.execute('DELETE FROM $table');
+    print("SUPPRESSION DES DONNES DE LA TABLE  $table TERMINER");
+    table = 'categories';
+    await db.execute('DELETE FROM $table');
+    print("SUPPRESSION DES DONNES DE LA TABLE  $table TERMINER");
+    GlobalState().DBChecker = false;
+    GlobalState().firstInitialize = false;
+    GlobalState().categorieFirstInitialize = false;
+    GlobalState().apiInitialize = false;
+    GlobalState().categorieApiInitialize = false;
+    GlobalState().localDBAutoIncrement = 0;
+    GlobalState().userId = '';
+    GlobalState().newIdFromApi = "";
   }
 
   Future<List<Task>> fetchTasksToSync(String table) async {
@@ -177,8 +203,7 @@ class DatabaseHelper {
   Future<void> delete(String taskId, String table) async {
     final db = await database;
     await db.delete(table, where: 'id = ?', whereArgs: [taskId]);
-    print(
-        "${table} AVEC ID  : ${taskId} SUPPRIMER AVEC SUCCESS DE LA BASE LOCAL");
+    print("$table AVEC ID  : $taskId SUPPRIMER AVEC SUCCESS DE LA BASE LOCAL");
   }
 
   Future<void> insertCategorie(Map<String, dynamic> categorie) async {

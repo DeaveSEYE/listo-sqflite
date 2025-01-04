@@ -22,34 +22,37 @@ class TaskCubit extends Cubit<Data> {
   TaskCubit() : super(Data([], isLoading: false)) {
     _getData(
         GlobalState().userId); // Charger les tâches lors de l'initialisation
-    // _syncLocalTaskWithApi(); // Start syncing local data to API periodically
+    _syncLocalTaskWithApi(
+        GlobalState().userId); // Start syncing local data to API periodically
   }
 
   Future<void> _getData(String userId) async {
-    // Si une opération est déjà en cours, on retourne immédiatement
-    while (_isFetchingTasks) {
-      await Future.delayed(Duration(milliseconds: 100));
-    }
-
-    // Activer le verrou
-    _isFetchingTasks = true;
-
-    try {
-      if (!GlobalState().firstInitialize) {
-        print("DEBUT PROCESS : RECUPERATION DES TACHES DEPUIS L'API");
-
-        await _fetchTasksFromApi(userId);
-        print("FIN PROCESS : RECUPERATION DES TACHES DEPUIS L'API");
-      } else {
-        print("DEBUT PROCESS : RECUPERATION DES TACHES DEPUIS BASE LOCAL");
-        await _fetchTasksFromLocal(userId);
-        print("FIN PROCESS : RECUPERATION DES TACHES DEPUIS BASE LOCAL");
+    if (userId.isNotEmpty) {
+      // Si une opération est déjà en cours, on retourne immédiatement
+      while (_isFetchingTasks) {
+        await Future.delayed(Duration(milliseconds: 100));
       }
-    } catch (e) {
-      print("Erreur lors de l'exécution de _fetchTasks : $e");
-    } finally {
-      // Libérer le verrou
-      _isFetchingTasks = false;
+
+      // Activer le verrou
+      _isFetchingTasks = true;
+
+      try {
+        if (!GlobalState().firstInitialize) {
+          print("DEBUT PROCESS : RECUPERATION DES TACHES DEPUIS L'API");
+
+          await _fetchTasksFromApi(userId);
+          print("FIN PROCESS : RECUPERATION DES TACHES DEPUIS L'API");
+        } else {
+          print("DEBUT PROCESS : RECUPERATION DES TACHES DEPUIS BASE LOCAL");
+          await _fetchTasksFromLocal(userId);
+          print("FIN PROCESS : RECUPERATION DES TACHES DEPUIS BASE LOCAL");
+        }
+      } catch (e) {
+        print("Erreur lors de l'exécution de _fetchTasks : $e");
+      } finally {
+        // Libérer le verrou
+        _isFetchingTasks = false;
+      }
     }
   }
 
@@ -119,16 +122,18 @@ class TaskCubit extends Cubit<Data> {
   }
 
   // Sync vers l'api toute les 5minutes
-  void _syncLocalTaskWithApi() {
-    Timer.periodic(Duration(minutes: 1), (timer) async {
-      if (await isInternetAvailable()) {
-        print(
-            "Internet connecté. Tentative de synchronisation des données locales...");
-        GlobalState().apiInitialize = true;
-        await _syncTaskToApi();
-        GlobalState().apiInitialize = false;
-      }
-    });
+  void _syncLocalTaskWithApi(userId) {
+    if (userId.isNotEmpty) {
+      Timer.periodic(Duration(minutes: 1), (timer) async {
+        if (await isInternetAvailable()) {
+          print(
+              "Internet connecté. Tentative de synchronisation des données locales...");
+          GlobalState().apiInitialize = true;
+          await _syncTaskToApi();
+          GlobalState().apiInitialize = false;
+        }
+      });
+    }
   }
 
   Future<void> _syncTaskToApi() async {

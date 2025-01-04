@@ -362,7 +362,7 @@ Color parseColor(String? colorString) {
 Color _colorFromHex(String hexColor) {
   hexColor = hexColor.replaceFirst('#', '');
   if (hexColor.length == 6) {
-    hexColor = 'FF' + hexColor; // Ajoute un alpha par défaut (FF = opaque)
+    hexColor = 'FF$hexColor'; // Ajoute un alpha par défaut (FF = opaque)
   }
   int colorInt = int.parse(hexColor, radix: 16);
   return Color(colorInt);

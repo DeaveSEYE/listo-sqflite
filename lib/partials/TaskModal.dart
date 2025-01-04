@@ -453,61 +453,97 @@ class TaskModal {
     double blue = color.blue / 255.0;
 
     // Vérification des couleurs par correspondance avec tolérance
-    if (isCloseTo(red, 1.0) && isCloseTo(green, 0.0) && isCloseTo(blue, 0.0))
+    if (isCloseTo(red, 1.0) && isCloseTo(green, 0.0) && isCloseTo(blue, 0.0)) {
       return 'red'; // Red
+    }
     if (isCloseTo(red, 0.9137) &&
         isCloseTo(green, 0.1176) &&
-        isCloseTo(blue, 0.3882)) return 'pink'; // Pink
+        isCloseTo(blue, 0.3882)) {
+      return 'pink'; // Pink
+    }
     if (isCloseTo(red, 0.6118) &&
         isCloseTo(green, 0.1529) &&
-        isCloseTo(blue, 0.6902)) return 'purple'; // Purple
+        isCloseTo(blue, 0.6902)) {
+      return 'purple'; // Purple
+    }
     if (isCloseTo(red, 0.4039) &&
         isCloseTo(green, 0.2314) &&
-        isCloseTo(blue, 0.7176)) return 'deep purple'; // Deep Purple
+        isCloseTo(blue, 0.7176)) {
+      return 'deep purple'; // Deep Purple
+    }
     if (isCloseTo(red, 0.2471) &&
         isCloseTo(green, 0.3176) &&
-        isCloseTo(blue, 0.7098)) return 'indigo'; // Indigo
+        isCloseTo(blue, 0.7098)) {
+      return 'indigo'; // Indigo
+    }
     if (isCloseTo(red, 0.1294) &&
         isCloseTo(green, 0.5882) &&
-        isCloseTo(blue, 0.9529)) return 'blue'; // Blue
+        isCloseTo(blue, 0.9529)) {
+      return 'blue'; // Blue
+    }
     if (isCloseTo(red, 0.0157) &&
         isCloseTo(green, 0.6627) &&
-        isCloseTo(blue, 0.9569)) return 'light blue'; // Light Blue
+        isCloseTo(blue, 0.9569)) {
+      return 'light blue'; // Light Blue
+    }
     if (isCloseTo(red, 0.0) &&
         isCloseTo(green, 0.7373) &&
-        isCloseTo(blue, 0.8314)) return 'cyan'; // Cyan
+        isCloseTo(blue, 0.8314)) {
+      return 'cyan'; // Cyan
+    }
     if (isCloseTo(red, 0.0) &&
         isCloseTo(green, 0.5882) &&
-        isCloseTo(blue, 0.5333)) return 'teal'; // Teal
+        isCloseTo(blue, 0.5333)) {
+      return 'teal'; // Teal
+    }
     if (isCloseTo(red, 0.2980) &&
         isCloseTo(green, 0.6863) &&
-        isCloseTo(blue, 0.3137)) return 'green'; // Green
+        isCloseTo(blue, 0.3137)) {
+      return 'green'; // Green
+    }
     if (isCloseTo(red, 0.5451) &&
         isCloseTo(green, 0.7647) &&
-        isCloseTo(blue, 0.2902)) return 'light green'; // Light Green
+        isCloseTo(blue, 0.2902)) {
+      return 'light green'; // Light Green
+    }
     if (isCloseTo(red, 0.8039) &&
         isCloseTo(green, 0.8627) &&
-        isCloseTo(blue, 0.2235)) return 'lime'; // Lime
+        isCloseTo(blue, 0.2235)) {
+      return 'lime'; // Lime
+    }
     if (isCloseTo(red, 1.0) &&
         isCloseTo(green, 0.9216) &&
-        isCloseTo(blue, 0.2314)) return 'yellow'; // Yellow
+        isCloseTo(blue, 0.2314)) {
+      return 'yellow'; // Yellow
+    }
     if (isCloseTo(red, 1.0) &&
         isCloseTo(green, 0.7569) &&
-        isCloseTo(blue, 0.0275)) return 'amber'; // Amber
-    if (isCloseTo(red, 1.0) && isCloseTo(green, 0.5961) && isCloseTo(blue, 0.0))
+        isCloseTo(blue, 0.0275)) {
+      return 'amber'; // Amber
+    }
+    if (isCloseTo(red, 1.0) && isCloseTo(green, 0.5961) && isCloseTo(blue, 0.0)) {
       return 'orange'; // Orange
+    }
     if (isCloseTo(red, 1.0) &&
         isCloseTo(green, 0.3412) &&
-        isCloseTo(blue, 0.1333)) return 'deep orange'; // Deep Orange
+        isCloseTo(blue, 0.1333)) {
+      return 'deep orange'; // Deep Orange
+    }
     if (isCloseTo(red, 0.4745) &&
         isCloseTo(green, 0.3333) &&
-        isCloseTo(blue, 0.2824)) return 'brown'; // Brown
+        isCloseTo(blue, 0.2824)) {
+      return 'brown'; // Brown
+    }
     if (isCloseTo(red, 0.6196) &&
         isCloseTo(green, 0.6196) &&
-        isCloseTo(blue, 0.6196)) return 'grey'; // Grey
+        isCloseTo(blue, 0.6196)) {
+      return 'grey'; // Grey
+    }
     if (isCloseTo(red, 0.3765) &&
         isCloseTo(green, 0.4902) &&
-        isCloseTo(blue, 0.5451)) return 'blue grey'; // Blue Grey
+        isCloseTo(blue, 0.5451)) {
+      return 'blue grey'; // Blue Grey
+    }
 
     return 'unknown color';
   }

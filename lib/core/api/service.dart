@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:intl/intl.dart';
 import 'package:listo/core/utils/categorie.dart';
 import 'package:listo/core/utils/task.dart';
 import 'package:listo/core/global/global_state.dart';
@@ -17,7 +18,7 @@ class ApiService {
       final localTasks = await _databaseHelper.fetchTasks(userId);
       return localTasks.map((e) => Task.fromJson(e)).toList();
     } else {
-      final response = await http.get(Uri.parse(taskApiUrl));
+      final response = await http.get(Uri.parse('$taskApiUrl/$userId'));
       if (response.statusCode == 200) {
         final List<dynamic> taskData = json.decode(response.body);
         return taskData.map((data) => Task.fromJson(data)).toList();
@@ -28,7 +29,7 @@ class ApiService {
   }
 
   Future<void> addUser(Map<String, dynamic> user) async {
-    // print(user);
+    print(user);
     // GlobalState().localDBAutoIncrement++;
     // String newId = "listo${GlobalState().localDBAutoIncrement}";
     // user['id'] = newId;
@@ -39,27 +40,116 @@ class ApiService {
       body: json.encode(user),
     );
     if (response.statusCode != 201) {
+      print("ICI");
+      print(user);
       throw Exception('Failed to add task: ${response.body}');
     } else {
+      print("LA 0 ");
       final responseData = json.decode(response.body);
       user['id'] = responseData['id'];
+      user.addAll({
+        'auth_source': user['auth']['source'],
+        'auth_id': user['auth']['id'],
+        'photoUrl': user['auth']['photoUrl'],
+      });
+      user.remove('auth');
+      print("LA");
+      print(user);
       await _databaseHelper.insertUser(user);
+      print("LA1");
+      GlobalState().userId = responseData['id'];
+      createDefaultData();
     }
-    GlobalState().userId = user['id'];
+  }
+
+  Future<void> logout() async {
+    // print(user);
+    await _databaseHelper.logout();
+  }
+
+  void createDefaultData() async {
+    final DateTime currentDate = DateTime.now();
+    final DateTime dueDate = currentDate.add(Duration(days: 5));
+
+    // Si vous souhaitez formater la date (par exemple, en ISO 8601)
+    final String formattedDueDate =
+        DateFormat('yyyy-MM-ddTHH:mm:ss.SSS').format(dueDate);
+
+    final task = {
+      "userId": GlobalState().userId,
+      "title": "Tache par defaut",
+      "categorie": "Defaut",
+      "description": "description de la tache",
+      "priority": "basse",
+      "isChecked": true,
+      "categorieColor": "grey",
+      "dueDate": formattedDueDate,
+      "isNew": 0,
+      "isUpdated": 0,
+      "isDeleted": 0,
+      "is_synced": 0,
+    };
+    // task['isChecked'] = task['isChecked'] == false ? false : true;
+    final categorie = {
+      "userId": GlobalState().userId,
+      "categorie": "Defaut",
+      "categorieColor": "#9E9E9E"
+    };
+    // await addTask(task);
+    // await addCategory(categorie);
+//creer et enregistrer une tache par defaut
+    final respTask = await http.post(
+      Uri.parse(taskApiUrl),
+      headers: {'Content-Type': 'application/json'},
+      body: json.encode(task),
+    );
+    if (respTask.statusCode != 201) {
+      print("task api");
+      print(task);
+      print('Failed to add default task');
+      throw Exception('Failed to add default task: ${respTask.body}');
+    } else {
+      // final respTaskData = json.decode(respTask.body);
+      // task['id'] = respTaskData['id'];
+      // task['isChecked'] = task['isChecked'] == false ? 0 : 1;
+      // print("task local");
+      // print(task);
+      // await _databaseHelper.insertTask(task);
+    }
+//     //creer et enregistrer une categorie par defaut
+    final respCategorie = await http.post(
+      Uri.parse(categorieApiUrl),
+      headers: {'Content-Type': 'application/json'},
+      body: json.encode(categorie),
+    );
+    if (respCategorie.statusCode != 201) {
+      print("categorie api");
+      print(categorie);
+      print('Failed to add default categorie');
+      throw Exception(
+          'Failed to add default categorie : ${respCategorie.body}');
+    } else {
+      // final respCategorieData = json.decode(respCategorie.body);
+      // categorie['id'] = respCategorieData['id'];
+      // await _databaseHelper.insertCategorie(categorie);
+    }
   }
 
   Future<void> addTask(Map<String, dynamic> taskData) async {
     print(taskData);
     taskData['userId'] = GlobalState().userId;
+    GlobalState().localDBAutoIncrement++;
+    String newId = "listo${GlobalState().localDBAutoIncrement}";
+    taskData['id'] = newId;
     // print(
     //     "GlobalState().firstInitialize  : ${GlobalState().firstInitialize}  & GlobalState().apiInitialize ; ${GlobalState().apiInitialize}");
     if (GlobalState().firstInitialize && GlobalState().apiInitialize == false) {
       print("Ajout de la tâche dans la base locale.");
       taskData['isChecked'] = taskData['isChecked'] == false ? 0 : 1;
       taskData['isNew'] = 1;
-      GlobalState().localDBAutoIncrement++;
-      String newId = "listo${GlobalState().localDBAutoIncrement}";
-      taskData['id'] = newId;
+      // GlobalState().localDBAutoIncrement++;
+      // String newId = "listo${GlobalState().localDBAutoIncrement}";
+      // taskData['id'] = newId;
       taskData.addAll({
         'is_synced': 0,
       });
@@ -255,7 +345,7 @@ class ApiService {
       return localCategories.map((e) => Categorie.fromJson(e)).toList();
     } else {
       print("Utilisation API pour les categories.");
-      final response = await http.get(Uri.parse(categorieApiUrl));
+      final response = await http.get(Uri.parse('$categorieApiUrl/$userId'));
       if (response.statusCode == 200) {
         final List<dynamic> categoriesData = json.decode(response.body);
         return categoriesData.map((data) => Categorie.fromJson(data)).toList();

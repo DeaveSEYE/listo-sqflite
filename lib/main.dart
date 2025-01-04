@@ -1,11 +1,10 @@
 import 'dart:io'; // Pour vérifier l'existence du fichier
 import 'package:flutter/material.dart';
+import 'package:listo/core/global/global_state.dart';
 import 'package:listo/core/theme/theme.dart';
 import 'package:listo/database/database_helper.dart';
 import 'package:listo/routes.dart';
 import 'package:path/path.dart'; // Pour récupérer le chemin des fichiers locaux
-import 'package:listo/core/utils/task.dart';
-import 'package:listo/core/global/global_state.dart';
 import 'package:sqflite/sqflite.dart';
 
 void main() async {
@@ -33,6 +32,8 @@ Future<String> _determineInitialRoute() async {
             .first; // Récupérer le premier utilisateur (ou adapter selon votre logique)
         // GlobalState().currentUser = currentUser; // Sauvegarder les infos dans GlobalState ou autre
         print("Utilisateur trouvé : $currentUser");
+        // print(currentUser['id']);
+        GlobalState().userId = currentUser['id'];
         return Routes.homePage;
       } else {
         print("Aucun utilisateur trouvé, redirection vers login.");

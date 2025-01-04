@@ -1,8 +1,24 @@
 import 'package:flutter/material.dart';
+import 'package:listo/core/api/service.dart';
 import 'package:listo/partials/main_scaffold.dart';
+import 'package:listo/partials/notification.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
+  Future<void> logout(BuildContext context) async {
+    final apiService = ApiService();
+
+    await apiService.logout();
+
+    // Rediriger l'utilisateur vers l'écran de connexion ou l'écran principal
+    Navigator.pushReplacementNamed(context, '/login');
+    NotificationHelper.showFlushbar(
+      // ignore: use_build_context_synchronously
+      context: context,
+      message: "Vous etes desormais deconnecté ",
+      type: NotificationType.success,
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -47,10 +63,8 @@ class ProfileScreen extends StatelessWidget {
             const SizedBox(height: 16.0),
             ElevatedButton(
               onPressed: () {
-                // Action de déconnexion
-                // MaterialPageRoute(
-                // builder: (context) => const Login(),
-                //);
+                // Appel de la fonction de déconnexion
+                logout(context);
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.blue,

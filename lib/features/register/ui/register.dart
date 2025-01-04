@@ -1,11 +1,14 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:flutter_signin_button/flutter_signin_button.dart';
 import 'package:bcrypt/bcrypt.dart'; // Pour le hashage des mots de passe
+import 'package:flutter_signin_button/flutter_signin_button.dart';
 import 'package:listo/core/api/service.dart';
 import 'package:listo/core/theme/colors.dart'; // Couleurs personnalisées
 import 'package:listo/core/utils/responsive.dart';
 import 'package:listo/partials/notification.dart'; // Classe responsive
+
+import 'package:google_sign_in/google_sign_in.dart';
+import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 
 class Register extends StatefulWidget {
   const Register({super.key});
@@ -23,6 +26,77 @@ class _RegisterState extends State<Register> {
   final TextEditingController _confirmPasswordController =
       TextEditingController();
 
+  Future<void> _signInWithGoogle() async {
+    try {
+      final GoogleSignIn googleSignIn = GoogleSignIn();
+      final GoogleSignInAccount? googleUser = await googleSignIn.signIn();
+      if (googleUser == null) {
+        print('Google Sign-In annulé par l\'utilisateur.');
+        NotificationHelper.showFlushbar(
+          // ignore: use_build_context_synchronously
+          context: context,
+          message: "Inscription Google Sign-In annulé ",
+          type: NotificationType.error,
+        );
+        return;
+      }
+      print(googleUser);
+      // Préparer les données pour l'API
+      final requestData = {
+        'user': googleUser.displayName,
+        'email': googleUser.email,
+        'password': '',
+        'auth': {
+          'source': 'google',
+          'id': googleUser.id,
+          'photoUrl': googleUser.photoUrl
+        },
+      };
+
+      // Envoyer les données à l'API
+
+      await apiService.addUser(requestData);
+
+      NotificationHelper.showFlushbar(
+        // ignore: use_build_context_synchronously
+        context: context,
+        message: "Inscription réussie ",
+        type: NotificationType.success,
+      );
+
+      Navigator.pushReplacementNamed(context, '/home');
+    } catch (e) {
+      print('Erreur lors de la connexion avec Google : $e');
+      NotificationHelper.showFlushbar(
+        // ignore: use_build_context_synchronously
+        context: context,
+        message: "Erreur lors de la connexion avec Google ",
+        type: NotificationType.alert,
+      );
+    }
+  }
+
+  Future<void> _signInWithApple() async {
+    try {
+      final credential = await SignInWithApple.getAppleIDCredential(
+        scopes: [
+          AppleIDAuthorizationScopes.email,
+          AppleIDAuthorizationScopes.fullName,
+        ],
+      );
+
+      final String email = credential.email ?? 'Email non fourni';
+      final String displayName =
+          '${credential.givenName ?? ''} ${credential.familyName ?? ''}'.trim();
+
+      // Affiche les informations pour tester
+      print('Apple Sign-In réussi : $displayName, $email');
+      // Envoyer les données à votre API ou Firebase
+    } catch (e) {
+      print('Erreur lors de la connexion avec Apple : $e');
+    }
+  }
+
   Future<void> _register() async {
     if (_formKey.currentState!.validate()) {
       final name = _nameController.text.trim();
@@ -37,6 +111,7 @@ class _RegisterState extends State<Register> {
         'user': name,
         'email': email,
         'password': hashedPassword,
+        'auth': {'source': 'normal', 'id': '', 'photoUrl': ''},
       };
 
       // Envoyer les données à l'API
@@ -97,19 +172,31 @@ class _RegisterState extends State<Register> {
                   fontSize: responsive.fontSize(0.05),
                 ),
               ),
-              SizedBox(height: responsive.hp(2)),
+              SizedBox(height: responsive.hp(1)),
               TextFormField(
                 controller: _nameController,
                 decoration: InputDecoration(
-                  labelText: 'Prénom & Nom',
+                  labelText: 'Prenom & Nom',
                   hintText: 'Entrez votre nom complet',
-                  prefixIcon: const Icon(Icons.person),
+                  filled: true,
+                  fillColor: AppColors.inputFill,
                   border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10)),
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: BorderSide(color: Colors.grey.shade300),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: BorderSide(color: Colors.grey.shade300),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: const BorderSide(color: Colors.blue),
+                  ),
+                  prefixIcon: const Icon(Icons.person, color: Colors.grey),
                 ),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
-                    return 'Veuillez entrer votre nom';
+                    return 'Veuillez entrer votre nom complet';
                   }
                   return null;
                 },
@@ -118,26 +205,39 @@ class _RegisterState extends State<Register> {
               TextFormField(
                 controller: _emailController,
                 decoration: InputDecoration(
-                  labelText: 'Email ou Nom utilisateur',
-                  hintText: 'Entrez un identifiant',
-                  prefixIcon: const Icon(Icons.email),
+                  labelText: 'Email OU Tel',
+                  hintText: 'Entrez votre identifiant',
+                  filled: true,
+                  fillColor: AppColors.inputFill,
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(10),
+                    borderSide: BorderSide(color: Colors.grey.shade300),
                   ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: BorderSide(color: Colors.grey.shade300),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: const BorderSide(color: Colors.blue),
+                  ),
+                  prefixIcon: const Icon(Icons.email, color: Colors.grey),
                 ),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
-                    return 'Veuillez entrer un email valide';
+                    return 'Le champ identifiant est vide';
                   }
-
-                  // Vérification avec RegExp pour un email valide
-                  final emailRegex = RegExp(
-                    r"^[a-zA-Z0-9.a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$",
-                  );
-                  if (!emailRegex.hasMatch(value)) {
-                    return 'Format de l\'email incorrect';
+                  if (num.tryParse(value) != null && value.length > 7) {
+                    return 'Veuillez entrer un N° de Tel valide';
+                  } else {
+                    // Vérification avec RegExp pour un email valide
+                    final emailRegex = RegExp(
+                      r"^[a-zA-Z0-9.a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$",
+                    );
+                    if (!emailRegex.hasMatch(value)) {
+                      return 'Format de l\'email incorrect';
+                    }
                   }
-
                   return null;
                 },
               ),
@@ -146,11 +246,23 @@ class _RegisterState extends State<Register> {
                 controller: _passwordController,
                 obscureText: true,
                 decoration: InputDecoration(
-                  labelText: 'Mot de passe',
-                  hintText: 'Entrez votre mot de passe',
-                  prefixIcon: const Icon(Icons.lock),
+                  labelText: 'Mot de Passe',
+                  hintText: 'Entrez votre Mot de passe',
+                  filled: true,
+                  fillColor: AppColors.inputFill,
                   border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10)),
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: BorderSide(color: Colors.grey.shade300),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: BorderSide(color: Colors.grey.shade300),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: const BorderSide(color: Colors.blue),
+                  ),
+                  prefixIcon: const Icon(Icons.lock, color: Colors.grey),
                 ),
                 validator: (value) {
                   if (value == null || value.length < 6) {
@@ -164,11 +276,23 @@ class _RegisterState extends State<Register> {
                 controller: _confirmPasswordController,
                 obscureText: true,
                 decoration: InputDecoration(
-                  labelText: 'Confirmer Mot de passe',
-                  hintText: 'Entrez à nouveau',
-                  prefixIcon: const Icon(Icons.lock),
+                  labelText: 'Confirmer mot de passe',
+                  hintText: 'Entrez a nouveau',
+                  filled: true,
+                  fillColor: AppColors.inputFill,
                   border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10)),
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: BorderSide(color: Colors.grey.shade300),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: BorderSide(color: Colors.grey.shade300),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: const BorderSide(color: Colors.blue),
+                  ),
+                  prefixIcon: const Icon(Icons.lock, color: Colors.grey),
                 ),
                 validator: (value) {
                   if (value != _passwordController.text) {
@@ -179,34 +303,44 @@ class _RegisterState extends State<Register> {
               ),
               SizedBox(height: responsive.hp(3)),
               ElevatedButton(
-                onPressed: _register,
-                child: const Text("S'inscrire"),
+                onPressed: () async {
+                  await _register(); // Appel de la méthode _register
+                },
                 style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primary, // Couleur du bouton
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(0),
+                  ),
                   padding: EdgeInsets.symmetric(
-                    vertical: responsive.hp(2),
+                    vertical: responsive.hp(1),
                     horizontal: responsive.wp(10),
                   ),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(20),
+                ),
+                child: Text(
+                  "S'inscrire",
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 19,
+                    fontWeight: FontWeight.bold,
                   ),
                 ),
               ),
-              SizedBox(height: responsive.hp(3)),
+              SizedBox(height: responsive.hp(1)),
               const Text('Ou'),
-              SizedBox(height: responsive.hp(2)),
+              SizedBox(height: responsive.hp(1)),
               if (Platform.isAndroid)
                 SignInButton(
                   Buttons.Google,
                   text: "S'inscrire avec Google",
-                  onPressed: () {},
+                  onPressed: _signInWithGoogle,
                 ),
               if (Platform.isIOS)
                 SignInButton(
                   Buttons.Apple,
                   text: "S'inscrire avec Apple",
-                  onPressed: () {},
+                  onPressed: _signInWithApple,
                 ),
-              SizedBox(height: responsive.hp(3)),
+              SizedBox(height: responsive.hp(2)),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
