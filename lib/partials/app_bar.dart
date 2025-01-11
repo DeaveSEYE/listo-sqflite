@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:listo/core/api/notifi_service.dart';
 import 'package:listo/core/theme/colors.dart';
 import 'package:listo/features/profile/ui/profile.dart';
 

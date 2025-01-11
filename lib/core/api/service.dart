@@ -41,13 +41,25 @@ class ApiService {
             usersData.cast<Map<String, dynamic>>();
 
         // Trouver l'utilisateur avec `item` égal à `value`
-        final user = users.firstWhere(
-          (user) => user[item] == value,
-          orElse: () =>
-              <String, dynamic>{}, // Retourne une Map vide si non trouvé
-        );
-        print(user);
-        return user; // Retourne les données de l'utilisateur trouvé ou une Map vide
+        if (item == "auth") {
+          final user = users.firstWhere(
+            (user) => user[item]["id"] == value,
+            orElse: () =>
+                <String, dynamic>{}, // Retourne une Map vide si non trouvé
+          );
+          print(user);
+          return user;
+        } else {
+          final user = users.firstWhere(
+            (user) => user[item] == value,
+            orElse: () =>
+                <String, dynamic>{}, // Retourne une Map vide si non trouvé
+          );
+          print(user);
+          return user;
+        }
+
+// Retourne les données de l'utilisateur trouvé ou une Map vide
       } else {
         print('Erreur : Impossible de récupérer les utilisateurs.');
         return <String, dynamic>{}; // Retourne une Map vide en cas d'échec
@@ -59,10 +71,6 @@ class ApiService {
   }
 
   Future<void> addUser(Map<String, dynamic> user) async {
-    print(user);
-    // GlobalState().localDBAutoIncrement++;
-    // String newId = "listo${GlobalState().localDBAutoIncrement}";
-    // user['id'] = newId;
     // print(user);
     final response = await http.post(
       Uri.parse(userApiUrl),
@@ -70,23 +78,27 @@ class ApiService {
       body: json.encode(user),
     );
     if (response.statusCode != 201) {
-      print("ICI");
-      print(user);
-      throw Exception('Failed to add task: ${response.body}');
+      // print("ICI");
+      // print(user);
+      throw Exception('Failed to add user: ${response.body}');
     } else {
       print("LA 0 ");
       final responseData = json.decode(response.body);
       user['id'] = responseData['id'];
-      user.addAll({
-        'auth_source': user['auth']['source'],
-        'auth_id': user['auth']['id'],
-        'photoUrl': user['auth']['photoUrl'],
-      });
+      user['auth_source'] = user['auth']['source'];
+      user['auth_id'] = user['auth']['id'];
+      user['photoUrl'] = user['auth']['photoUrl'];
+
+      print("AVANT REMOVE AUTH");
+      print(user);
       user.remove('auth');
-      print("LA");
+      print("APRES REMOVE AUTH");
       print(user);
       await _databaseHelper.insertUser(user);
-      print("LA1");
+      // final users = await _databaseHelper.fetchUsers();
+      // print("users.first");
+      // print(users.first);
+      // print("APRES insertUser DE _databaseHelper");
       GlobalState().userId = responseData['id'];
       createDefaultData();
     }

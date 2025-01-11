@@ -1,12 +1,14 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_signin_button/flutter_signin_button.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:bcrypt/bcrypt.dart'; // Pour la vérification des mots de passe hachés
 import 'package:listo/core/api/service.dart';
+import 'package:listo/core/global/authHelper.dart';
 import 'package:listo/core/global/global_state.dart';
 import 'package:listo/core/theme/colors.dart';
-import 'package:listo/core/theme/widgets.dart';
 import 'package:listo/core/utils/responsive.dart';
+import 'package:listo/database/database_helper.dart';
 import 'package:listo/features/register/ui/register.dart';
 import 'package:listo/partials/main_scaffold.dart';
 import 'package:listo/partials/notification.dart';
@@ -19,10 +21,70 @@ class Login extends StatefulWidget {
 }
 
 class _LoginState extends State<Login> {
+  final DatabaseHelper _databaseHelper = DatabaseHelper();
   final apiService = ApiService();
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
+  Future<void> _loginWithGoogle() async {
+    try {
+      final GoogleSignIn googleSignIn = GoogleSignIn();
+
+      // Déconnexion explicite pour réinitialiser l'état
+      await googleSignIn.signOut();
+
+      final GoogleSignInAccount? googleUser = await googleSignIn.signIn();
+      if (googleUser == null) {
+        print('Google log-In annulé par l\'utilisateur.');
+        NotificationHelper.showFlushbar(
+          // ignore: use_build_context_synchronously
+          context: context,
+          message: "Connexion Google Sign-In annulé ",
+          type: NotificationType.error,
+        );
+        return;
+      }
+      print("googleUser");
+      print(googleUser);
+      final user = await apiService.userData("auth", googleUser.id);
+      if (user.isEmpty) {
+        NotificationHelper.showFlushbar(
+          // ignore: use_build_context_synchronously
+          context: context,
+          message:
+              "Vous n'etes pas encore inscris appuyer sur s'inscrire pour creer un compte ",
+          type: NotificationType.info,
+        );
+        return;
+      }
+      final requestData = {
+        'id': user['id'],
+        'user': user['user'],
+        'email': user['email'],
+        'auth_source': user['auth']['source'],
+        'auth_id': user['auth']['id'],
+        'photoUrl': user['auth']['photoUrl'],
+      };
+      await _databaseHelper.insertUser(requestData);
+      // GlobalState().userId = user['id'];
+      await AuthHelper.updateAuthData("login", user);
+      NotificationHelper.showFlushbar(
+        // ignore: use_build_context_synchronously
+        context: context,
+        message: "Bienvenue ",
+        type: NotificationType.success,
+      );
+      Navigator.pushReplacementNamed(context, '/home');
+    } catch (e) {
+      print('Erreur lors de la connexion avec Google : $e');
+      NotificationHelper.showFlushbar(
+        // ignore: use_build_context_synchronously
+        context: context,
+        message: "Erreur lors de la connexion avec Google ",
+        type: NotificationType.alert,
+      );
+    }
+  }
 
   Future<void> _login() async {
     if (_formKey.currentState!.validate()) {
@@ -46,7 +108,7 @@ class _LoginState extends State<Login> {
           if (user['auth']['source'] == "normal") {
             // Vérification du mot de passe
             bool isPasswordValid = BCrypt.checkpw(password, user['password']);
-            GlobalState().userId = user['id'];
+
             if (!isPasswordValid) {
               NotificationHelper.showFlushbar(
                 // ignore: use_build_context_synchronously
@@ -56,6 +118,17 @@ class _LoginState extends State<Login> {
               );
               return;
             }
+            final requestData = {
+              'id': user['id'],
+              'user': user['user'],
+              'email': user['email'],
+              'auth_source': user['auth']['source'],
+              'auth_id': user['auth']['id'],
+              'photoUrl': user['auth']['photoUrl'],
+            };
+            await _databaseHelper.insertUser(requestData);
+            // GlobalState().userId = user['id'];
+            await AuthHelper.updateAuthData("login", user);
             NotificationHelper.showFlushbar(
               // ignore: use_build_context_synchronously
               context: context,
@@ -262,9 +335,7 @@ class _LoginState extends State<Login> {
                   SignInButton(
                     Buttons.Google,
                     text: "Connexion avec Google",
-                    onPressed: () {
-                      // Action pour la connexion avec Google
-                    },
+                    onPressed: _loginWithGoogle,
                   ),
                 SizedBox(height: responsive.hp(3)),
                 if (Platform.isIOS)

@@ -27,12 +27,13 @@ Future<String> _determineInitialRoute() async {
       final dbHelper = DatabaseHelper();
       // Vérifier s'il y a un utilisateur dans la table `users`
       final users = await dbHelper.fetchUsers();
+      print(users);
       if (users.isNotEmpty) {
         final currentUser = users
             .first; // Récupérer le premier utilisateur (ou adapter selon votre logique)
         // GlobalState().currentUser = currentUser; // Sauvegarder les infos dans GlobalState ou autre
         print("Utilisateur trouvé : $currentUser");
-        // print(currentUser['id']);
+        // print(currentUser['user']);
         GlobalState().userId = currentUser['id'];
         return Routes.homePage;
       } else {

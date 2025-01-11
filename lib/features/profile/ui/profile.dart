@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:listo/core/global/global_state.dart';
 import 'package:listo/features/parametres/ui/compte.dart';
 import 'package:listo/features/parametres/ui/preferences.dart';
 import 'package:listo/features/profile/ui/edit_user.dart';
@@ -137,13 +138,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ],
             ),
             const SizedBox(height: 16.0),
-            const Text(
-              'Listo',
-              style: TextStyle(fontSize: 20.0, fontWeight: FontWeight.bold),
+            Text(
+              GlobalState().user,
+              style:
+                  const TextStyle(fontSize: 20.0, fontWeight: FontWeight.bold),
             ),
-            const Text(
-              'listo@forcen.sn',
-              style: TextStyle(fontSize: 16.0, color: Colors.grey),
+            Text(
+              GlobalState().email,
+              style: const TextStyle(fontSize: 16.0, color: Colors.grey),
             ),
             const SizedBox(height: 20.0),
             // Boutons réduits avec texte en blanc

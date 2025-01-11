@@ -8,6 +8,12 @@ class Preference extends StatefulWidget {
 }
 
 class _PreferenceState extends State<Preference> {
+  // État des interrupteurs
+  bool _notificationsEnabled = true;
+  bool _pokeNotificationsEnabled = false;
+  bool _emailOffersEnabled = true;
+  bool _productUpdatesEnabled = false;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -18,7 +24,6 @@ class _PreferenceState extends State<Preference> {
           icon: Icon(Icons.arrow_back, color: Colors.blue),
           onPressed: () => Navigator.of(context).pop(),
         ),
-        // title: Text('Compte', style: TextStyle(color: Colors.black)),
         centerTitle: true,
       ),
       body: ListView(
@@ -29,35 +34,43 @@ class _PreferenceState extends State<Preference> {
           _buildSwitchTile(
             title: 'Notifications',
             subtitle:
-                'Activez les notifications et trouvez plus d’opportunités pour gagner !',
+                'Activez les notifications etre alerter des taches en approches',
+            value: _notificationsEnabled,
+            onChanged: (value) {
+              setState(() {
+                _notificationsEnabled = value;
+              });
+            },
           ),
           _buildSwitchTile(
-            title: 'Notifications de poke',
-            subtitle:
-                'Activez les notifications poke et ne ratez jamais de message de vos amis.',
-          ),
-          _buildSwitchTile(
-            title: 'Offres e-mail',
-            subtitle:
-                'Trouvez ces offres spéciales et ces défis directement dans votre boîte mail.',
-          ),
-          _buildSwitchTile(
-            title: 'Mises à jour du produit',
-            subtitle:
-                'Soyez informé sur les mises à jour, nouveautés, et faites des retours.',
+            title: 'Mises à jour',
+            subtitle: 'Soyez informé sur les mises à jour, nouveautés.',
+            value: _productUpdatesEnabled,
+            onChanged: (value) {
+              setState(() {
+                _productUpdatesEnabled = value;
+              });
+            },
           ),
         ],
       ),
     );
   }
 
-  Widget _buildSwitchTile({required String title, required String subtitle}) {
+  Widget _buildSwitchTile({
+    required String title,
+    required String subtitle,
+    required bool value,
+    required ValueChanged<bool> onChanged,
+  }) {
     return SwitchListTile(
       title: Text(title),
       subtitle: Text(subtitle),
-      value: true,
-      onChanged: (bool value) {},
+      value: value,
+      onChanged: onChanged,
       activeColor: Colors.blue,
+      inactiveThumbColor: Colors.grey,
+      inactiveTrackColor: Colors.grey.shade300,
     );
   }
 }

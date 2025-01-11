@@ -7,6 +7,11 @@ class GlobalState {
   bool categorieApiInitialize = false;
   int localDBAutoIncrement = 0;
   String userId = '';
+  String email = '';
+  String user = '';
+  String authId = '';
+  String authphotoUrl = '';
+  String authSource = '';
   // String userId = 'yQVulGUaY0DhKz00JbRP';
   String newIdFromApi = "";
 

@@ -27,6 +27,8 @@ class TaskCubit extends Cubit<Data> {
   }
 
   Future<void> _getData(String userId) async {
+    // print("LOOK ICI");
+    // print(GlobalState().userId);
     if (userId.isNotEmpty) {
       // Si une opération est déjà en cours, on retourne immédiatement
       while (_isFetchingTasks) {

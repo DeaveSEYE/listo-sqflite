@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:bcrypt/bcrypt.dart'; // Pour le hashage des mots de passe
 import 'package:flutter_signin_button/flutter_signin_button.dart';
 import 'package:listo/core/api/service.dart';
+import 'package:listo/core/global/authHelper.dart';
 import 'package:listo/core/theme/colors.dart'; // Couleurs personnalisées
 import 'package:listo/core/utils/responsive.dart';
 import 'package:listo/partials/notification.dart'; // Classe responsive
@@ -29,6 +30,10 @@ class _RegisterState extends State<Register> {
   Future<void> _signInWithGoogle() async {
     try {
       final GoogleSignIn googleSignIn = GoogleSignIn();
+
+      // Déconnexion explicite pour réinitialiser l'état
+      await googleSignIn.signOut();
+
       final GoogleSignInAccount? googleUser = await googleSignIn.signIn();
       if (googleUser == null) {
         print('Google Sign-In annulé par l\'utilisateur.');
@@ -41,6 +46,17 @@ class _RegisterState extends State<Register> {
         return;
       }
       print(googleUser);
+      final user = await apiService.userData("auth", googleUser.id);
+      if (user.isNotEmpty) {
+        NotificationHelper.showFlushbar(
+          // ignore: use_build_context_synchronously
+          context: context,
+          message:
+              "Vous etes deja inscris appuyer sur se connecter pour acceder a l'application ",
+          type: NotificationType.info,
+        );
+        return;
+      }
       // Préparer les données pour l'API
       final requestData = {
         'user': googleUser.displayName,
@@ -56,7 +72,7 @@ class _RegisterState extends State<Register> {
       // Envoyer les données à l'API
 
       await apiService.addUser(requestData);
-
+      await AuthHelper.updateAuthData("login", requestData);
       NotificationHelper.showFlushbar(
         // ignore: use_build_context_synchronously
         context: context,
@@ -103,6 +119,17 @@ class _RegisterState extends State<Register> {
       final email = _emailController.text.trim();
       final password = _passwordController.text.trim();
 
+      final user = await apiService.userData("email", email);
+      if (user.isNotEmpty) {
+        NotificationHelper.showFlushbar(
+          // ignore: use_build_context_synchronously
+          context: context,
+          message:
+              "Vous etes deja inscris appuyer sur se connecter pour acceder a l'application ",
+          type: NotificationType.info,
+        );
+        return;
+      }
       // Hashage du mot de passe avec bcrypt
       final hashedPassword = BCrypt.hashpw(password, BCrypt.gensalt());
 
@@ -117,6 +144,7 @@ class _RegisterState extends State<Register> {
       // Envoyer les données à l'API
       try {
         await apiService.addUser(requestData);
+        await AuthHelper.updateAuthData("login", requestData);
         Navigator.pushReplacementNamed(context, '/home');
 
         NotificationHelper.showFlushbar(

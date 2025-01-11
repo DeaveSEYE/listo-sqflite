@@ -39,16 +39,6 @@ class Routes {
             child: const MainScaffold(),
           ),
         );
-      //return MaterialPageRoute(
-      // builder: (_) => const Scaffold(
-      // body: Center(
-      // child: Text(
-      // 'Bienvenue dans LISTO',
-      // style: TextStyle(fontSize: 25, fontWeight: FontWeight.bold),
-      //),
-      // ),
-      // ),
-      //);
     }
   }
 }

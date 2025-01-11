@@ -30,6 +30,7 @@ class _EditUserState extends State<EditUser> {
       TextEditingController();
 
   File? _selectedImage;
+  @override
   void initState() {
     super.initState();
     _loadImage();
@@ -97,8 +98,8 @@ class _EditUserState extends State<EditUser> {
   }
 
   Future<void> _pickImage() async {
-    final ImagePicker _picker = ImagePicker();
-    final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
+    final ImagePicker picker = ImagePicker();
+    final XFile? image = await picker.pickImage(source: ImageSource.gallery);
 
     if (image != null) {
       File? croppedImage = await _cropImage(File(image.path));
