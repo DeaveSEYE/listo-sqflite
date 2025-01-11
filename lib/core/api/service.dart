@@ -28,6 +28,36 @@ class ApiService {
     }
   }
 
+  Future<Map<String, dynamic>> userData(String item, String value) async {
+    try {
+      final response = await http
+          .get(Uri.parse('https://task-api-firebase.vercel.app/users'));
+
+      if (response.statusCode == 200) {
+        final List<dynamic> usersData = json.decode(response.body);
+
+        // Conversion de la liste dynamique en une liste de Map
+        final List<Map<String, dynamic>> users =
+            usersData.cast<Map<String, dynamic>>();
+
+        // Trouver l'utilisateur avec `item` égal à `value`
+        final user = users.firstWhere(
+          (user) => user[item] == value,
+          orElse: () =>
+              <String, dynamic>{}, // Retourne une Map vide si non trouvé
+        );
+        print(user);
+        return user; // Retourne les données de l'utilisateur trouvé ou une Map vide
+      } else {
+        print('Erreur : Impossible de récupérer les utilisateurs.');
+        return <String, dynamic>{}; // Retourne une Map vide en cas d'échec
+      }
+    } catch (e) {
+      print('Erreur : $e');
+      return <String, dynamic>{}; // Retourne une Map vide en cas d'exception
+    }
+  }
+
   Future<void> addUser(Map<String, dynamic> user) async {
     print(user);
     // GlobalState().localDBAutoIncrement++;

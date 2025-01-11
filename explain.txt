@@ -1,0 +1,75 @@
+L'erreur que vous rencontrez est liée à la configuration manquante pour le ImageCropper dans votre projet Flutter. En particulier, l'erreur mentionne que l'activité UCropActivity n'est pas déclarée dans votre fichier AndroidManifest.xml, ce qui provoque un crash lorsque vous essayez de recadrer une image.
+
+Voici les étapes pour corriger ce problème :
+
+1. Déclarer UCropActivity dans AndroidManifest.xml
+Ouvrez le fichier android/app/src/main/AndroidManifest.xml et ajoutez la déclaration suivante à l'intérieur de la balise <application> :
+
+xml
+Copier le code
+<application
+    android:label="listo"
+    android:icon="@mipmap/ic_launcher"
+    ...>
+    
+    <!-- Autres déclarations existantes -->
+
+    <!-- Ajouter cette déclaration -->
+    <activity
+        android:name="com.yalantis.ucrop.UCropActivity"
+        android:exported="false"
+        android:theme="@style/Theme.AppCompat.Light.NoActionBar" />
+</application>
+2. Vérifiez les dépendances
+Assurez-vous d'avoir la bonne version des packages image_cropper et image_picker. Voici une configuration typique dans le fichier pubspec.yaml :
+
+yaml
+Copier le code
+dependencies:
+  flutter:
+    sdk: flutter
+  image_cropper: ^4.2.0
+  image_picker: ^0.8.7+4
+Après avoir modifié votre fichier pubspec.yaml, exécutez la commande suivante pour mettre à jour les dépendances :
+
+bash
+Copier le code
+flutter pub get
+3. Configurer le ImageCropper pour Android
+Dans les dernières versions d'image_cropper, il est nécessaire d'activer les composants AndroidX si ce n'est pas encore fait. Ouvrez le fichier android/gradle.properties et ajoutez les lignes suivantes :
+
+properties
+Copier le code
+android.useAndroidX=true
+android.enableJetifier=true
+4. Mise à jour des styles
+Assurez-vous que le style utilisé par UCropActivity est correctement défini dans android/app/src/main/res/values/styles.xml. Ajoutez, si nécessaire :
+
+xml
+Copier le code
+<resources>
+    <style name="Theme.AppCompat.Light.NoActionBar" parent="Theme.AppCompat.Light">
+        <item name="windowActionBar">false</item>
+        <item name="windowNoTitle">true</item>
+    </style>
+</resources>
+5. Tester le projet
+Redémarrez votre application avec :
+
+bash
+Copier le code
+flutter clean
+flutter run
+Autres recommandations :
+Permissions Android : Assurez-vous que les permissions suivantes sont définies dans votre AndroidManifest.xml si vous utilisez la caméra ou accédez au stockage.
+xml
+Copier le code
+<uses-permission android:name="android.permission.CAMERA" />
+<uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+<uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+Gérer les exceptions : Si l'erreur persiste, entourez vos appels d'image picker/cropper avec un bloc try-catch pour éviter que l'application ne plante complètement.
+Résultat attendu
+Après avoir suivi ces étapes, l'application devrait être en mesure de :
+
+Ouvrir le sélecteur de fichiers.
+Recadrer l'image sélectionnée sans se fermer brutalement.
