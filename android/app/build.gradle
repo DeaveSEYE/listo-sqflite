@@ -7,10 +7,11 @@ plugins {
     // id 'com.google.gms.google-services' version "4.4.2" apply false //pour connection via google
 }
 //pour connection via google
-// dependencies {
+dependencies {
 //   // Import the Firebase BoM
-//   implementation platform('com.google.firebase:firebase-bom:33.7.0')
-
+  implementation platform('com.google.firebase:firebase-bom:33.7.0')  //firebase push notif
+    // Add the desugaring library
+    coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.0.3' //flutter local notification
 //   // TODO: Add the dependencies for Firebase products you want to use
 //   // When using the BoM, don't specify versions in Firebase dependencies
 //   implementation 'com.google.firebase:firebase-analytics'
@@ -18,7 +19,7 @@ plugins {
 
 //   // Add the dependencies for any other desired Firebase products
 //   // https://firebase.google.com/docs/android/setup#available-libraries
-// }
+}
 //pour connection via google
 android {
     namespace = "com.example.listo"
@@ -28,6 +29,8 @@ android {
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_1_8
         targetCompatibility = JavaVersion.VERSION_1_8
+                // Add this to enable desugaring
+        coreLibraryDesugaringEnabled true //flutter local notification
     }
 
     kotlinOptions {
@@ -39,7 +42,8 @@ android {
         applicationId = "com.example.listo"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
-        minSdk = flutter.minSdkVersion
+        minSdk = 21  //firebase push notif
+        // minSdk = flutter.minSdkVersion
         // minSdk = 23 // pour firebaseauth conection via google
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
@@ -86,3 +90,4 @@ flutter {
 }
 
 // apply plugin: 'com.google.gms.google-services' version "4.4.2" //pour se connecter via google
+apply plugin: 'com.google.gms.google-services' //pour se connecter via google et  //firebase push notif

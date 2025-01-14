@@ -1,5 +1,9 @@
 import 'dart:io'; // Pour vérifier l'existence du fichier
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+//firebase push notitication
+import 'package:listo/core/api/firebase_api.dart';
+//firebase push notitication
 import 'package:listo/core/global/global_state.dart';
 import 'package:listo/core/theme/theme.dart';
 import 'package:listo/database/database_helper.dart';
@@ -10,6 +14,10 @@ import 'package:sqflite/sqflite.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   final initialRoute = await _determineInitialRoute();
+  //firebase push notitication
+  await Firebase.initializeApp();
+  await FirebaseApi().initNotifications();
+  //firebase push notitication
   runApp(MyApp(initialRoute: initialRoute));
 }
 

@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "680890383106",
+    "project_id": "listo-77bda",
+    "storage_bucket": "listo-77bda.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:680890383106:android:41fe9b1c3b28cee68b601b",
+        "android_client_info": {
+          "package_name": "com.example.listo"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "680890383106-3jkpqcijhocv835ufc05h11ck8jdjql7.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.listo",
+            "certificate_hash": "fec0d0bee2b4a5097d1ece1eaed5dd0e2fe7e408"
+          }
+        },
+        {
+          "client_id": "680890383106-nrcre4lhaocfgq0l10s5v8s7d3tg6a2s.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAkLLcgd_m9yvwJbfe1OOTwWJsvMd_qieg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "680890383106-nrcre4lhaocfgq0l10s5v8s7d3tg6a2s.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

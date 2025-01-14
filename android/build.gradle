@@ -29,9 +29,13 @@ buildscript {
         // Mettez à jour la version du plugin Android Gradle à 8.2.1 ou plus récentes
         classpath 'com.android.tools.build:gradle:8.2.1'
         //  classpath 'com.google.gms:google-services:4.3.15' //pour se connecter via google
-        classpath 'com.google.gms:google-services:4.4.0'
+       //firebase push notif
+        // classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+         
+        classpath 'com.google.gms:google-services:4.4.0'  //firebase push notif
+        
           // Import the Firebase BoM
-//   implementation platform('com.google.firebase:firebase-bom:33.7.0')
+//   implementation platform('com.google.firebase:firebase-bom:33.7.0')  //firebase push notif
 
   // TODO: Add the dependencies for Firebase products you want to use
   // When using the BoM, don't specify versions in Firebase dependencies

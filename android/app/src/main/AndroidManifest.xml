@@ -29,6 +29,10 @@
         android:name="com.yalantis.ucrop.UCropActivity"
         android:exported="false"
         android:theme="@style/Theme.AppCompat.Light.NoActionBar" />
+        <!-- firebase push notif -->
+        <activity
+        android:name="com.google.firebase.messaging.defaultNotification_channel_id" android:value="high_importance_channel" />
+        <!-- firebase push notif -->
         <!-- Don't delete the meta-data below.
              This is used by the Flutter tool to generate GeneratedPluginRegistrant.java -->
         <meta-data
