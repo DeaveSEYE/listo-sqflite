@@ -195,6 +195,7 @@ class DatabaseHelper {
   }
 
   Future<void> insertUser(Map<String, dynamic> user) async {
+    // print(user);
     final db = await database;
     await db.insert('users', user);
   }

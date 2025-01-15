@@ -59,5 +59,4 @@ class NotificationService {
     );
   }
 }
-class CheckNotifications {
-}
+

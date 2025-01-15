@@ -1,9 +1,7 @@
-import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:listo/core/global/global_state.dart';
-import 'package:listo/core/local_notification.dart';
 import 'package:listo/features/parametres/ui/compte.dart';
 import 'package:listo/features/parametres/ui/preferences.dart';
 import 'package:listo/features/profile/ui/edit_user.dart';

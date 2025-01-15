@@ -3,24 +3,13 @@ plugins {
     id "kotlin-android"
     // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
     id "dev.flutter.flutter-gradle-plugin"
-    // id 'com.google.gms.google-services' version "4.4.2"  //pour connection via google
-    // id 'com.google.gms.google-services' version "4.4.2" apply false //pour connection via google
 }
-//pour connection via google
 dependencies {
 //   // Import the Firebase BoM
   implementation platform('com.google.firebase:firebase-bom:33.7.0')  //firebase push notif
     // Add the desugaring library
     coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.0.3' //flutter local notification
-//   // TODO: Add the dependencies for Firebase products you want to use
-//   // When using the BoM, don't specify versions in Firebase dependencies
-//   implementation 'com.google.firebase:firebase-analytics'
-
-
-//   // Add the dependencies for any other desired Firebase products
-//   // https://firebase.google.com/docs/android/setup#available-libraries
 }
-//pour connection via google
 android {
     namespace = "com.example.listo"
     compileSdk = flutter.compileSdkVersion
@@ -29,7 +18,7 @@ android {
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_1_8
         targetCompatibility = JavaVersion.VERSION_1_8
-                // Add this to enable desugaring
+        // Add this to enable desugaring
         coreLibraryDesugaringEnabled true //flutter local notification
     }
 
@@ -42,9 +31,8 @@ android {
         applicationId = "com.example.listo"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
-        minSdk = 21  //firebase push notif
+          minSdk = 21  //firebase push notif
         // minSdk = flutter.minSdkVersion
-        // minSdk = 23 // pour firebaseauth conection via google
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
@@ -58,24 +46,6 @@ android {
             storePassword 'Deave@listo21'
         }
     }
-    //     signingConfigs {
-    //     release {
-    //         keyAlias keystoreProperties['keyAlias']
-    //         keyPassword keystoreProperties['keyPassword']
-    //         storeFile keystoreProperties['storeFile'] ? file(keystoreProperties['storeFile']) : null
-    //         storePassword keystoreProperties['storePassword']
-    //     }
-    //     //# It started working when I added the following debug section.
-    //     debug {
-    //         keyAlias keystoreProperties['keyAlias']
-    //         keyPassword keystoreProperties['keyPassword']
-    //         storeFile keystoreProperties['storeFile'] ? file(keystoreProperties['storeFile']) : null
-    //         storePassword keystoreProperties['storePassword']
-    //     }
-    // }
-     //  pour le google signIn
-   
-   
     buildTypes {
         release {
             // TODO: Add your own signing config for the release build.
@@ -88,6 +58,4 @@ android {
 flutter {
     source = "../.."
 }
-
-// apply plugin: 'com.google.gms.google-services' version "4.4.2" //pour se connecter via google
 apply plugin: 'com.google.gms.google-services' //pour se connecter via google et  //firebase push notif

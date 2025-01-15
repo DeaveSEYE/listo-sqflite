@@ -13,7 +13,7 @@ class AuthHelper {
         GlobalState().firebasePushNotifToken =
             user['firebaseCloudMessagingToken'] ?? '';
       } else {
-        throw ArgumentError("empty firebaseCloudMessagingToken data");
+        // throw ArgumentError("empty firebaseCloudMessagingToken data");
       }
       GlobalState().userId = user['id'] ?? '';
       GlobalState().email = user['email'] ?? '';
