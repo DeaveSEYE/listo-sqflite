@@ -94,6 +94,7 @@ class DatabaseHelper {
         user TEXT,
         email TEXT,
         password TEXT,
+        firebasecloudmessagingtoken TEXT,
         auth_source TEXT,
         auth_id TEXT,
         photoUrl TEXT,
@@ -103,6 +104,15 @@ class DatabaseHelper {
       )
     ''');
     print("Table 'users' créée.");
+
+    await db.execute('''
+      CREATE TABLE tokens (
+        source TEXT,
+        token TEXT,
+        createdAt DATE DEFAULT (datetime('now'))
+      )
+    ''');
+    print("Table 'tokens' créée.");
   }
 
   // Méthodes pour interagir avec la base de données
@@ -218,5 +228,16 @@ class DatabaseHelper {
     } else {
       print("categorie insérée provenant de l'API: $categorie");
     }
+  }
+
+  insertToken(Map<String, dynamic> token) async {
+    final db = await database;
+    await db.insert('tokens', token);
+    print("token $token insérée dans la base loval ");
+  }
+
+  Future<List<Map<String, dynamic>>> fetchtokens() async {
+    final db = await database;
+    return await db.query('tokens');
   }
 }

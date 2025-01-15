@@ -10,8 +10,8 @@ class Preference extends StatefulWidget {
 class _PreferenceState extends State<Preference> {
   // État des interrupteurs
   bool _notificationsEnabled = true;
-  bool _pokeNotificationsEnabled = false;
-  bool _emailOffersEnabled = true;
+  final bool _pokeNotificationsEnabled = false;
+  final bool _emailOffersEnabled = true;
   bool _productUpdatesEnabled = false;
 
   @override

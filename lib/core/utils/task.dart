@@ -1,5 +1,7 @@
 // ignore_for_file: equal_keys_in_map
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+import 'dart:convert';
 
 // Task model
 class Task {
@@ -75,6 +77,35 @@ class Task {
       isUpdated: json['isUpdated'] == 1, // Convertir en booléen
       isDeleted: json['isDeleted'] == 1, // Convertir en booléen
     );
+  }
+
+  // Méthode pour vérifier si la tâche est proche de l'échéance
+  bool tachesDeLaJournee() {
+    final now = DateTime.now();
+    final dueDateTime = DateTime.parse(dueDate); // Conversion en DateTime
+    final diff = dueDateTime.difference(now);
+    return diff.inHours <= 24 && diff.inHours > 0;
+  }
+
+  bool echeanceDans4Heures() {
+    final now = DateTime.now();
+    final dueDateTime = DateTime.parse(dueDate); // Conversion en DateTime
+    final diff = dueDateTime.difference(now);
+    return diff.inHours <= 24 && diff.inHours > 0;
+  }
+
+  bool echeanceDans2Heures() {
+    final now = DateTime.now();
+    final dueDateTime = DateTime.parse(dueDate); // Conversion en DateTime
+    final diff = dueDateTime.difference(now);
+    return diff.inHours <= 2 && diff.inHours > 0;
+  }
+
+  bool echeanceDans30Minutes() {
+    final now = DateTime.now();
+    final dueDateTime = DateTime.parse(dueDate); // Conversion en DateTime
+    final diff = dueDateTime.difference(now);
+    return diff.inMinutes <= 10 && diff.inMinutes > 0;
   }
 }
 

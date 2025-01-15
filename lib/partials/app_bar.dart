@@ -1,4 +1,7 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
+import 'package:listo/core/local_notification.dart';
 import 'package:listo/core/theme/colors.dart';
 import 'package:listo/features/profile/ui/profile.dart';
 
@@ -48,6 +51,18 @@ class _CustomAppBarState extends State<CustomAppBar> {
           color: Colors.white,
           icon: const Icon(Icons.notification_add),
           onPressed: () {
+            final payload = {
+              'route': '/profile',
+              'tasks': [],
+              'categories': [],
+            };
+            final payloadString = jsonEncode(payload);
+            NotificationService().showNotification(
+              id: 1,
+              title: 'test',
+              body: 'Notification de test.',
+              payload: payloadString, // La route où rediriger
+            );
             // NotificationService()
             //     .showNotification(title: 'Sample title', body: 'It works!');
           },

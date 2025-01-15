@@ -1,8 +1,11 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io' show InternetAddress;
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:listo/core/api/service.dart';
+import 'package:listo/core/local_notification.dart';
+import 'package:listo/core/utils/categorie.dart';
 import 'package:listo/core/utils/task.dart';
 import 'package:listo/database/database_helper.dart';
 import 'package:listo/core/global/global_state.dart'; // Import du gestionnaire global
@@ -127,6 +130,16 @@ class TaskCubit extends Cubit<Data> {
   void _syncLocalTaskWithApi(userId) {
     if (userId.isNotEmpty) {
       Timer.periodic(Duration(minutes: 1), (timer) async {
+        // Vérifier les tâches et envoyer des notifications
+        final localTasks = await _databaseHelper.fetchTasks(userId);
+        final tasks = localTasks.map((e) => Task.fromJson(e)).toList();
+        final localCategories = await _databaseHelper.fetchCategories(userId);
+        // print(localTasks);
+        // final tasks = localTasks.map((e) => Task.fromJson(e)).toList();
+        final categories =
+            localCategories.map((e) => Categorie.fromJson(e)).toList();
+        await checkTasksAndNotify(tasks, categories);
+        // Vérifier les tâches et envoyer des notifications
         if (await isInternetAvailable()) {
           print(
               "Internet connecté. Tentative de synchronisation des données locales...");
@@ -232,5 +245,74 @@ Future<bool> isInternetAvailable() async {
       print('Erreur lors de la vérification de la connexion Internet : $e');
       return false;
     }
+  }
+}
+
+Future<void> checkTasksAndNotify(
+    List<Task> tasks, List<Categorie> categories) async {
+  // Envoi d'une notification au chargement de l'écran
+  final payload = {
+    'route': '/task',
+    'tasks': [],
+    'categories': categories,
+  };
+
+  // Filtrer les tâches de la journée
+  final tasksForToday =
+      tasks.where((task) => task.tachesDeLaJournee()).toList();
+  if (tasksForToday.isNotEmpty) {
+    payload['tasks'] = tasksForToday;
+    final payloadString = jsonEncode(payload); // Convertir en chaîne JSON
+    NotificationService().showNotification(
+      id: 1,
+      title: 'Vos tâches de la journée',
+      body: 'Vous avez ${tasksForToday.length} tâches pour aujourd\'hui.',
+      payload: payloadString, // La route où rediriger
+    );
+  }
+
+  // Filtrer les tâches avec échéance dans 4 heures
+  final tasksDueIn4Hours =
+      tasks.where((task) => task.echeanceDans4Heures()).toList();
+  if (tasksDueIn4Hours.isNotEmpty) {
+    payload['tasks'] = tasksDueIn4Hours;
+    final payloadString = jsonEncode(payload); // Convertir en chaîne JSON
+    NotificationService().showNotification(
+      id: 1,
+      title: 'Tâche à échéance dans 4 heures',
+      body:
+          'Vous avez ${tasksDueIn4Hours.length} tâche(s) à échéance dans 4 heures.',
+      payload: payloadString, // La route où rediriger
+    );
+  }
+
+  // Filtrer les tâches avec échéance dans 2 heures
+  final tasksDueIn2Hours =
+      tasks.where((task) => task.echeanceDans2Heures()).toList();
+  if (tasksDueIn2Hours.isNotEmpty) {
+    payload['tasks'] = tasksDueIn2Hours;
+    final payloadString = jsonEncode(payload); // Convertir en chaîne JSON
+    NotificationService().showNotification(
+      id: 1,
+      title: 'Tâche à échéance dans 2 heures',
+      body:
+          'Vous avez ${tasksDueIn2Hours.length} tâche(s) à échéance dans 2 heures.',
+      payload: payloadString, // La route où rediriger
+    );
+  }
+
+  // Filtrer les tâches avec échéance dans 10 minutes
+  final tasksDueIn10Minutes =
+      tasks.where((task) => task.echeanceDans30Minutes()).toList();
+  if (tasksDueIn10Minutes.isNotEmpty) {
+    payload['tasks'] = tasksDueIn10Minutes;
+    final payloadString = jsonEncode(payload); // Convertir en chaîne JSON
+    NotificationService().showNotification(
+      id: 1,
+      title: 'Tâche à échéance dans 10 minutes',
+      body:
+          'Vous avez ${tasksDueIn10Minutes.length} tâche(s) à échéance dans 10 minutes.',
+      payload: payloadString, // La route où rediriger
+    );
   }
 }

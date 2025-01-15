@@ -70,6 +70,10 @@ class ApiService {
     }
   }
 
+  // Future<void> addToken(Map<String, dynamic> token) async {
+  //   await _databaseHelper.insertToken(token);
+  // }
+
   Future<void> addUser(Map<String, dynamic> user) async {
     // print(user);
     final response = await http.post(

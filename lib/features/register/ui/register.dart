@@ -6,6 +6,7 @@ import 'package:listo/core/api/service.dart';
 import 'package:listo/core/global/authHelper.dart';
 import 'package:listo/core/theme/colors.dart'; // Couleurs personnalisées
 import 'package:listo/core/utils/responsive.dart';
+import 'package:listo/database/database_helper.dart';
 import 'package:listo/partials/notification.dart'; // Classe responsive
 
 import 'package:google_sign_in/google_sign_in.dart';
@@ -20,6 +21,7 @@ class Register extends StatefulWidget {
 
 class _RegisterState extends State<Register> {
   final apiService = ApiService();
+  final DatabaseHelper _databaseHelper = DatabaseHelper();
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
@@ -57,11 +59,14 @@ class _RegisterState extends State<Register> {
         );
         return;
       }
+      // final token = await _databaseHelper.fetchtokens();
+      // token[0]['token'],
       // Préparer les données pour l'API
       final requestData = {
         'user': googleUser.displayName,
         'email': googleUser.email,
         'password': '',
+        'firebaseCloudMessagingToken': "test",
         'auth': {
           'source': 'google',
           'id': googleUser.id,
@@ -70,9 +75,9 @@ class _RegisterState extends State<Register> {
       };
 
       // Envoyer les données à l'API
-
+      print(requestData);
       await apiService.addUser(requestData);
-      await AuthHelper.updateAuthData("login", requestData);
+      await AuthHelper.updateAuthData("login", requestData, _databaseHelper);
       NotificationHelper.showFlushbar(
         // ignore: use_build_context_synchronously
         context: context,
@@ -132,19 +137,20 @@ class _RegisterState extends State<Register> {
       }
       // Hashage du mot de passe avec bcrypt
       final hashedPassword = BCrypt.hashpw(password, BCrypt.gensalt());
-
+      // final token = await _databaseHelper.fetchtokens();
       // Préparer les données pour l'API
       final requestData = {
         'user': name,
         'email': email,
         'password': hashedPassword,
+        'firebaseCloudMessagingToken': "test",
         'auth': {'source': 'normal', 'id': '', 'photoUrl': ''},
       };
-
+      print(requestData);
       // Envoyer les données à l'API
       try {
         await apiService.addUser(requestData);
-        await AuthHelper.updateAuthData("login", requestData);
+        await AuthHelper.updateAuthData("login", requestData, _databaseHelper);
         Navigator.pushReplacementNamed(context, '/home');
 
         NotificationHelper.showFlushbar(

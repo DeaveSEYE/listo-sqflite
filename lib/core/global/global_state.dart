@@ -14,6 +14,11 @@ class GlobalState {
   String authSource = '';
   // String userId = 'yQVulGUaY0DhKz00JbRP';
   String newIdFromApi = "";
+  String firebasePushNotifToken = "";
+  // bool daillyTasks = false;
+  // bool tasksIn4Hours = false;
+  // bool tasksIn2Hours = false;
+  // bool tasksIn30Minutes = false;
 
   factory GlobalState() {
     return _instance;

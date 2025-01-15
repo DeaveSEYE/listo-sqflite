@@ -1,6 +1,8 @@
 import 'dart:convert';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:listo/core/global/global_state.dart';
+import 'package:listo/database/database_helper.dart';
 
 // FirebasePushNotification associe a flutter local notification expliquer ICI
 // https://www.youtube.com/watch?v=k0zGEbiDJcQ&t=18s
@@ -16,6 +18,7 @@ Future<void> handleBackgroundMessage(RemoteMessage message) async {
 }
 
 class FirebaseApi {
+  final DatabaseHelper _databaseHelper = DatabaseHelper();
   final _firebaseMessaging = FirebaseMessaging.instance;
   final _androidChannel = const AndroidNotificationChannel(
     'hight_importance_channel',
@@ -46,7 +49,7 @@ class FirebaseApi {
           android: AndroidNotificationDetails(
               _androidChannel.id, _androidChannel.name,
               channelDescription: _androidChannel.description,
-              icon: '@drawable/ic_lancher'),
+              icon: '@mipmap/ic_lancher'),
         ),
         payload: jsonEncode(message.toMap()),
       );
@@ -78,6 +81,13 @@ class FirebaseApi {
     await _firebaseMessaging.requestPermission();
     final FCMT = await _firebaseMessaging.getToken();
     print('FIREBASE TOKEN :$FCMT');
+    GlobalState().firebasePushNotifToken = '$FCMT';
+
+    final token = {
+      'source': 'firebaseCloudMessaging',
+      'token': FCMT,
+    };
+    await _databaseHelper.insertToken(token);
     // FirebaseMessaging.onBackgroundMessage(handleBackgroundMessage);
     initPushNotifications();
     initLocalNotifications();

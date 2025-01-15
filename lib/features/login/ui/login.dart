@@ -5,7 +5,6 @@ import 'package:google_sign_in/google_sign_in.dart';
 import 'package:bcrypt/bcrypt.dart'; // Pour la vérification des mots de passe hachés
 import 'package:listo/core/api/service.dart';
 import 'package:listo/core/global/authHelper.dart';
-import 'package:listo/core/global/global_state.dart';
 import 'package:listo/core/theme/colors.dart';
 import 'package:listo/core/utils/responsive.dart';
 import 'package:listo/database/database_helper.dart';
@@ -67,7 +66,7 @@ class _LoginState extends State<Login> {
       };
       await _databaseHelper.insertUser(requestData);
       // GlobalState().userId = user['id'];
-      await AuthHelper.updateAuthData("login", user);
+      await AuthHelper.updateAuthData("login", user, _databaseHelper);
       NotificationHelper.showFlushbar(
         // ignore: use_build_context_synchronously
         context: context,
@@ -128,7 +127,7 @@ class _LoginState extends State<Login> {
             };
             await _databaseHelper.insertUser(requestData);
             // GlobalState().userId = user['id'];
-            await AuthHelper.updateAuthData("login", user);
+            await AuthHelper.updateAuthData("login", user, _databaseHelper);
             NotificationHelper.showFlushbar(
               // ignore: use_build_context_synchronously
               context: context,

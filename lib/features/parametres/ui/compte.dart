@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:listo/core/api/service.dart';
 import 'package:listo/core/global/authHelper.dart';
+import 'package:listo/database/database_helper.dart';
 import 'package:listo/features/parametres/ui/change_password.dart';
 import 'package:listo/features/parametres/ui/edit_profile.dart';
 import 'package:listo/partials/notification.dart';
@@ -13,11 +14,12 @@ class Compte extends StatefulWidget {
 }
 
 class _CompteState extends State<Compte> {
+  final DatabaseHelper _databaseHelper = DatabaseHelper();
   Future<void> logout(BuildContext context) async {
     final apiService = ApiService();
 
     await apiService.logout();
-    await AuthHelper.updateAuthData("logout", null);
+    await AuthHelper.updateAuthData("logout", null, _databaseHelper);
     // Rediriger l'utilisateur vers l'écran de connexion
     Navigator.pushReplacementNamed(context, '/login');
     NotificationHelper.showFlushbar(
@@ -29,7 +31,7 @@ class _CompteState extends State<Compte> {
   }
 
   Future<void> deleteAccount(BuildContext context) async {
-    await AuthHelper.updateAuthData("logout", null);
+    await AuthHelper.updateAuthData("logout", null, _databaseHelper);
     // Rediriger l'utilisateur vers l'écran de connexion
     // Navigator.pushReplacementNamed(context, '/login');
     NotificationHelper.showFlushbar(
