@@ -23,6 +23,16 @@ class MainScaffold extends StatefulWidget {
 class _MainScaffoldState extends State<MainScaffold> {
   int _selectedIndex = 0;
   List<Task> _searchTasks = [];
+
+  // Liste des pages
+  final List<Widget> _pages = [
+    // Home(tasks: tasks, categories: categories),
+    // Tasklist(tasks: tasks, categories: categories),
+    // CalendarPage(tasks: tasks, categories: categories),
+    // const ProfileScreen(),
+    // PageSearch(tasks: _searchTasks, categories: const []),
+  ];
+
   void setCurrentIndex(int index) {
     setState(() {
       _selectedIndex = index;
@@ -51,7 +61,6 @@ class _MainScaffoldState extends State<MainScaffold> {
               builder: (context, taskState) {
                 return BlocBuilder<CategorieCubit, CatData>(
                   builder: (context, categorieState) {
-                    // Affichage d'un indicateur de chargement
                     if (taskState.isLoading || categorieState.isLoading) {
                       return const Center(child: CircularProgressIndicator());
                     }
@@ -78,14 +87,10 @@ class _MainScaffoldState extends State<MainScaffold> {
                     final tasks = taskState.tasks;
                     final categories = categorieState.categories;
 
-                    // Pages de contenu
-                    return [
-                      Home(tasks: tasks, categories: categories),
-                      Tasklist(tasks: tasks, categories: categories),
-                      CalendarPage(tasks: tasks, categories: categories),
-                      const ProfileScreen(),
-                      PageSearch(tasks: _searchTasks, categories: const []),
-                    ][_selectedIndex];
+                    // Affichage de la page en fonction de l'index sélectionné
+                    return _pages.length > _selectedIndex
+                        ? _pages[_selectedIndex]
+                        : const SizedBox(); // Ou une page par défaut
                   },
                 );
               },
@@ -106,14 +111,6 @@ class _MainScaffoldState extends State<MainScaffold> {
                     icon: Icon(Icons.calendar_today), label: 'Agenda'),
                 BottomNavigationBarItem(
                     icon: Icon(Icons.person), label: 'Profil'),
-                // Ajout d'un élément invisible
-                BottomNavigationBarItem(
-                  icon: SizedBox(
-                      width: 0.0,
-                      height:
-                          0.0), // Rendre l'icône invisible en fixant la taille à 0.0
-                  label: '', // Pas de label
-                ),
               ],
               onTap: (index) => setCurrentIndex(index),
             ),
@@ -123,17 +120,11 @@ class _MainScaffoldState extends State<MainScaffold> {
                   onPressed: () {
                     TaskModal(
                       context: context,
-                      taskCubit: context.read<TaskCubit>(), // Passer TaskCubit
-                      categories: context
-                          .read<CategorieCubit>()
-                          .state
-                          .categories, // Passer les catégories
-                      task: null, // Tâche vide pour ajouter une nouvelle tâche
+                      taskCubit: context.read<TaskCubit>(),
+                      categories:
+                          context.read<CategorieCubit>().state.categories,
+                      task: null,
                       onTaskAdded: (taskData) async {},
-                      // onTaskAdded: (taskData) async {
-                      // Ajouter une tâche via TaskCubit
-                      // context.read<TaskCubit>().addTask(taskData);
-                      // },
                     ).showAddTaskModal();
                   },
                   icon: Icons.add,

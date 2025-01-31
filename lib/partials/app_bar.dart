@@ -1,12 +1,20 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:listo/core/cubit/taskCubit.dart';
 import 'package:listo/core/local_notification.dart';
 import 'package:listo/core/theme/colors.dart';
+import 'package:listo/core/utils/task.dart';
 import 'package:listo/features/profile/ui/profile.dart';
 
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:listo/partials/notification.dart';
+
 class CustomAppBar extends StatefulWidget implements PreferredSizeWidget {
-  const CustomAppBar({super.key});
+  final Function(List<Task>)
+      onSearchCallback; // Callback pour mettre à jour l'index
+
+  const CustomAppBar({super.key, required this.onSearchCallback});
 
   @override
   State<CustomAppBar> createState() => _CustomAppBarState();
@@ -16,37 +24,120 @@ class CustomAppBar extends StatefulWidget implements PreferredSizeWidget {
 }
 
 class _CustomAppBarState extends State<CustomAppBar> {
+  TextEditingController _searchController = TextEditingController();
+  bool _isSearching = false;
+  List<Task> _filteredTasks = []; // Liste des tâches filtrées
+
+  // Fonction de recherche
+  void onSearch(String query, List<Task> tasks) {
+    if (query.isEmpty) {
+      setState(() {
+        _filteredTasks = tasks;
+      });
+      NotificationHelper.showFlushbar(
+        // ignore: use_build_context_synchronously
+        context: context,
+        message: "Veuiller saisir la tache a rechercher",
+        type: NotificationType.alert,
+      );
+
+      // Navigator.pushReplacementNamed(context, '/home');
+    } else {
+      setState(() {
+        _filteredTasks = tasks
+            .where((task) =>
+                task.title.toLowerCase().contains(query.toLowerCase()))
+            .toList();
+      });
+      if (_filteredTasks.isEmpty) {
+        NotificationHelper.showFlushbar(
+          // ignore: use_build_context_synchronously
+          context: context,
+          message: "Aucune tache trouvé ",
+          type: NotificationType.error,
+        );
+      } else {
+        print(_filteredTasks);
+
+        // Appeler le callback pour informer MainScaffold de la recherche et mettre à jour l'index
+        widget.onSearchCallback(_filteredTasks);
+        //  Navigator.pushReplacementNamed(context, '/search');
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return AppBar(
-//backgroundColor: const Color(0x00000000),
-      backgroundColor: AppColors.primary,
+      backgroundColor: AppColors.primary, // Fond de l'AppBar
       leading: IconButton(
         icon: const Icon(
           Icons.person,
-          color: Colors.white, // Couleur de l'icône
+          color: Colors.white,
         ),
         onPressed: () {
-          // Naviguer vers la page Profile
           Navigator.push(
             context,
-            MaterialPageRoute(
-                builder: (context) =>
-                    const ProfileScreen()), // Remplacez ProfileScreen par votre widget de profil
+            MaterialPageRoute(builder: (context) => const ProfileScreen()),
           );
         },
       ),
-      title: const Padding(
-        padding: EdgeInsets.only(top: 8.0), // Abaisser le texte
-        child: Text(
-          "Listo",
-          style: TextStyle(
-            color: Colors.white, // Couleur du texte
-            fontWeight: FontWeight.bold, // Optionnel : ajustez le style
-          ),
-        ),
+      title: BlocBuilder<TaskCubit, Data>(
+        builder: (context, taskState) {
+          if (taskState.isLoading) {
+            return const CircularProgressIndicator(color: Colors.white);
+          }
+
+          return _isSearching
+              ? TextField(
+                  controller: _searchController,
+                  onSubmitted: (query) => onSearch(query, taskState.tasks),
+                  style: const TextStyle(color: Colors.black),
+                  decoration: InputDecoration(
+                    hintText: 'Rechercher...',
+                    prefixIcon: const Icon(Icons.search),
+                    hintStyle: const TextStyle(color: Colors.grey),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(100),
+                      borderSide: const BorderSide(color: Colors.blue),
+                    ),
+                    filled: true,
+                    fillColor: Colors.white,
+                    contentPadding: const EdgeInsets.symmetric(
+                      vertical: 8.0,
+                      horizontal: 16.0,
+                    ),
+                  ),
+                )
+              : const Text("Listo", style: TextStyle(color: Colors.white));
+        },
       ),
       actions: [
+        _isSearching
+            ? IconButton(
+                icon: const Icon(
+                  Icons.cancel,
+                  color: Colors.white,
+                ),
+                onPressed: () {
+                  setState(() {
+                    _isSearching = false;
+                    _searchController.clear();
+                    _filteredTasks = []; // Réinitialiser les tâches filtrées
+                  });
+                },
+              )
+            : IconButton(
+                icon: const Icon(
+                  Icons.search,
+                  color: Colors.white,
+                ),
+                onPressed: () {
+                  setState(() {
+                    _isSearching = true;
+                  });
+                },
+              ),
         IconButton(
           color: Colors.white,
           icon: const Icon(Icons.notification_add),
@@ -59,23 +150,14 @@ class _CustomAppBarState extends State<CustomAppBar> {
             final payloadString = jsonEncode(payload);
             NotificationService().showNotification(
               id: 1,
-              title: 'test',
+              title: 'Test Notification',
               body: 'Notification de test.',
-              payload: payloadString, // La route où rediriger
+              payload: payloadString,
             );
-            // NotificationService()
-            //     .showNotification(title: 'Sample title', body: 'It works!');
           },
         ),
       ],
       elevation: 4,
-      //bottom: PreferredSize(
-      //preferredSize: const Size.fromHeight(4.0), // Hauteur de la ligne
-      //child: Container(
-      //color: Colors.grey, // Couleur de la bordure inférieure
-      //height: 2.0, // Épaisseur de la ligne
-      //),
-      //),
     );
   }
 }
