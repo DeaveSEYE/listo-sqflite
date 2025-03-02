@@ -9,6 +9,7 @@ import 'package:listo/features/profile/ui/profile.dart';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:listo/partials/notification.dart';
+import 'package:listo/routes.dart';
 
 class CustomAppBar extends StatefulWidget implements PreferredSizeWidget {
   final Function(List<Task>)
@@ -24,7 +25,7 @@ class CustomAppBar extends StatefulWidget implements PreferredSizeWidget {
 }
 
 class _CustomAppBarState extends State<CustomAppBar> {
-  TextEditingController _searchController = TextEditingController();
+  final TextEditingController _searchController = TextEditingController();
   bool _isSearching = false;
   List<Task> _filteredTasks = []; // Liste des tâches filtrées
 
@@ -58,10 +59,35 @@ class _CustomAppBarState extends State<CustomAppBar> {
         );
       } else {
         print(_filteredTasks);
+        print(_filteredTasks.length);
 
         // Appeler le callback pour informer MainScaffold de la recherche et mettre à jour l'index
-        widget.onSearchCallback(_filteredTasks);
-        //  Navigator.pushReplacementNamed(context, '/search');
+        // widget.onSearchCallback(_filteredTasks);
+        // Redirection vers la page '/search' avec _filteredTasks en argument
+        // Navigator.pushReplacementNamed(
+        //   context,
+        //   '/search',
+        //   arguments: _filteredTasks,
+        // );
+        print('REDIRECTION VERS SEARCH AVEC : $_filteredTasks');
+        // Navigator.pushReplacementNamed(context, '/search',
+        //     arguments: _filteredTasks);
+        Navigator.pushReplacementNamed(
+          context,
+          Routes.searchPage,
+          arguments: {
+            'tasks': _filteredTasks,
+            // 'categories': [], // Assurez-vous de passer les catégories
+          },
+        );
+        // Navigator.pushReplacementNamed(
+        //   context,
+        //   Routes.searchPage,
+        //   arguments: {
+        //     'tasks': _filteredTasks, // Liste des tâches filtrées
+        //     'categories': [], // Liste des catégories
+        //   },
+        // );
       }
     }
   }

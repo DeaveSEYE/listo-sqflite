@@ -1,10 +1,9 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io' show InternetAddress;
-import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:listo/core/api/service.dart';
 import 'package:listo/core/local_notification.dart';
+import 'package:listo/core/utils/NetworkUtils.dart';
 import 'package:listo/core/utils/categorie.dart';
 import 'package:listo/core/utils/task.dart';
 import 'package:listo/database/database_helper.dart';
@@ -30,8 +29,6 @@ class TaskCubit extends Cubit<Data> {
   }
 
   Future<void> _getData(String userId) async {
-    // print("LOOK ICI");
-    // print(GlobalState().userId);
     if (userId.isNotEmpty) {
       // Si une opération est déjà en cours, on retourne immédiatement
       while (_isFetchingTasks) {
@@ -40,11 +37,11 @@ class TaskCubit extends Cubit<Data> {
 
       // Activer le verrou
       _isFetchingTasks = true;
+      bool isConnected = await NetworkUtils.isInternetAvailable();
 
       try {
-        if (!GlobalState().firstInitialize) {
+        if (isConnected) {
           print("DEBUT PROCESS : RECUPERATION DES TACHES DEPUIS L'API");
-
           await _fetchTasksFromApi(userId);
           print("FIN PROCESS : RECUPERATION DES TACHES DEPUIS L'API");
         } else {
@@ -104,8 +101,6 @@ class TaskCubit extends Cubit<Data> {
 
   Future<void> _fetchTasksFromLocal(String userId) async {
     emit(Data([], isLoading: true));
-    // print(
-    //     "FIRST INITIALIZE DANS _fetchTasksFromLocal : ${GlobalState().firstInitialize}");
     try {
       final localTasks = await _databaseHelper.fetchTasks(userId);
       // print(localTasks);
@@ -113,7 +108,6 @@ class TaskCubit extends Cubit<Data> {
       emit(Data(tasks));
       print('Tâches récupérées depuis la base locale.');
       // print(tasks.toString());
-      // print(localTasks);
     } catch (e) {
       print('Erreur lors du chargement des tâches depuis la base locale : $e');
       emit(Data([], isLoading: false));
@@ -129,7 +123,7 @@ class TaskCubit extends Cubit<Data> {
   // Sync vers l'api toute les 5minutes
   void _syncLocalTaskWithApi(userId) {
     if (userId.isNotEmpty) {
-      Timer.periodic(Duration(minutes: 1), (timer) async {
+      Timer.periodic(Duration(minutes: 10), (timer) async {
         // Vérifier les tâches et envoyer des notifications
         final localTasks = await _databaseHelper.fetchTasks(userId);
         final tasks = localTasks.map((e) => Task.fromJson(e)).toList();
@@ -140,7 +134,8 @@ class TaskCubit extends Cubit<Data> {
             localCategories.map((e) => Categorie.fromJson(e)).toList();
         await checkTasksAndNotify(tasks, categories);
         // Vérifier les tâches et envoyer des notifications
-        if (await isInternetAvailable()) {
+        bool isConnected = await NetworkUtils.isInternetAvailable();
+        if (isConnected) {
           print(
               "Internet connecté. Tentative de synchronisation des données locales...");
           GlobalState().apiInitialize = true;
@@ -224,27 +219,6 @@ class TaskCubit extends Cubit<Data> {
   Future<void> deleteTask(Task task, String table) async {
     task.isDeleted = true;
     await _databaseHelper.delete(task.id, table);
-  }
-}
-
-Future<bool> isInternetAvailable() async {
-  if (kIsWeb) {
-    try {
-      final result = Uri.parse("https://google.com").resolveUri(Uri());
-      return result.host.isNotEmpty;
-    } catch (e) {
-      print(
-          'Erreur lors de la vérification de la connexion Internet (Web) : $e');
-      return false;
-    }
-  } else {
-    try {
-      final result = await InternetAddress.lookup('google.com');
-      return result.isNotEmpty && result[0].rawAddress.isNotEmpty;
-    } catch (e) {
-      print('Erreur lors de la vérification de la connexion Internet : $e');
-      return false;
-    }
   }
 }
 

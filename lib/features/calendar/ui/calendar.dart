@@ -72,7 +72,7 @@ class _CalendarPageState extends State<CalendarPage> {
           // Calendrier
           SizedBox(
             width: MediaQuery.of(context).size.width,
-            height: 350,
+            height: 400,
             child: TableCalendar(
               firstDay: DateTime.utc(2020, 1, 1),
               lastDay: DateTime.utc(2030, 12, 31),
@@ -125,13 +125,13 @@ class _CalendarPageState extends State<CalendarPage> {
               },
             ),
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: 10),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               const Text(
                 "Liste des tâches",
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
               ),
               PopupMenuButton<String>(
                 icon:
@@ -168,10 +168,10 @@ class _CalendarPageState extends State<CalendarPage> {
           // Affichage des tâches pour le jour sélectionné
           if (_selectedDay != null)
             Text(
-              "Tâches pour ${_selectedDay!.day}-${_selectedDay!.month}-${_selectedDay!.year}",
-              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              "Tâches pour ${_selectedDay!.day} / ${_selectedDay!.month} / ${_selectedDay!.year}",
+              style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
             ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 5),
           // Affichage des tâches
           _selectedDay != null
               ? _getTasksForDay(_selectedDay!).isNotEmpty

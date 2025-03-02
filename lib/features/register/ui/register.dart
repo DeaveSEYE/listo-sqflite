@@ -7,7 +7,7 @@ import 'package:listo/core/global/authHelper.dart';
 import 'package:listo/core/theme/colors.dart'; // Couleurs personnalisées
 import 'package:listo/core/utils/responsive.dart';
 import 'package:listo/database/database_helper.dart';
-import 'package:listo/partials/notification.dart'; // Classe responsive
+import 'package:listo/partials/notification.dart';
 
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:sign_in_with_apple/sign_in_with_apple.dart';
@@ -163,7 +163,8 @@ class _RegisterState extends State<Register> {
         NotificationHelper.showFlushbar(
           // ignore: use_build_context_synchronously
           context: context,
-          message: "Verifier votre connextion internet ",
+          message:
+              "Vous devez etre connecter a internet pour creeer un compte via GOOGLE ",
           type: NotificationType.info,
         );
       }

@@ -9,7 +9,7 @@
       "client_info": {
         "mobilesdk_app_id": "1:680890383106:android:41fe9b1c3b28cee68b601b",
         "android_client_info": {
-          "package_name": "com.example.listo"
+          "package_name": "com.example.listo1"
         }
       },
       "oauth_client": [
@@ -17,7 +17,7 @@
           "client_id": "680890383106-3jkpqcijhocv835ufc05h11ck8jdjql7.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
-            "package_name": "com.example.listo",
+            "package_name": "com.example.listo1",
             "certificate_hash": "fec0d0bee2b4a5097d1ece1eaed5dd0e2fe7e408"
           }
         },

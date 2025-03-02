@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
+import 'package:listo/core/utils/NetworkUtils.dart';
 import 'package:listo/core/utils/categorie.dart';
 import 'package:listo/core/utils/task.dart';
 import 'package:listo/core/global/global_state.dart';
@@ -156,12 +157,12 @@ class ApiService {
       print('Failed to add default task');
       throw Exception('Failed to add default task: ${respTask.body}');
     } else {
-      // final respTaskData = json.decode(respTask.body);
-      // task['id'] = respTaskData['id'];
-      // task['isChecked'] = task['isChecked'] == false ? 0 : 1;
-      // print("task local");
-      // print(task);
-      // await _databaseHelper.insertTask(task);
+      final respTaskData = json.decode(respTask.body);
+      task['id'] = respTaskData['id'];
+      task['isChecked'] = task['isChecked'] == false ? 0 : 1;
+      print("task local");
+      print(task);
+      await _databaseHelper.insertTask(task);
     }
 //     //creer et enregistrer une categorie par defaut
     final respCategorie = await http.post(
@@ -176,9 +177,9 @@ class ApiService {
       throw Exception(
           'Failed to add default categorie : ${respCategorie.body}');
     } else {
-      // final respCategorieData = json.decode(respCategorie.body);
-      // categorie['id'] = respCategorieData['id'];
-      // await _databaseHelper.insertCategorie(categorie);
+      final respCategorieData = json.decode(respCategorie.body);
+      categorie['id'] = respCategorieData['id'];
+      await _databaseHelper.insertCategorie(categorie);
     }
   }
 
@@ -190,20 +191,22 @@ class ApiService {
     taskData['id'] = newId;
     // print(
     //     "GlobalState().firstInitialize  : ${GlobalState().firstInitialize}  & GlobalState().apiInitialize ; ${GlobalState().apiInitialize}");
-    if (GlobalState().firstInitialize && GlobalState().apiInitialize == false) {
-      print("Ajout de la tâche dans la base locale.");
-      taskData['isChecked'] = taskData['isChecked'] == false ? 0 : 1;
-      taskData['isNew'] = 1;
-      // GlobalState().localDBAutoIncrement++;
-      // String newId = "listo${GlobalState().localDBAutoIncrement}";
-      // taskData['id'] = newId;
-      taskData.addAll({
-        'is_synced': 0,
-      });
+    // if (GlobalState().firstInitialize && GlobalState().apiInitialize == false) {
+    print("Ajout de la tâche dans la base locale.");
+    taskData['isChecked'] = taskData['isChecked'] == false ? 0 : 1;
+    taskData['isNew'] = 1;
+    // GlobalState().localDBAutoIncrement++;
+    // String newId = "listo${GlobalState().localDBAutoIncrement}";
+    // taskData['id'] = newId;
+    taskData.addAll({
+      'is_synced': 0,
+    });
 
-      await _databaseHelper.insertTask(taskData);
-    } else {
-      print("Ajout de la tâche via l'API distante.");
+    await _databaseHelper.insertTask(taskData);
+    // } else {
+    print("Ajout de la tâche via l'API distante.");
+    bool isConnected = await NetworkUtils.isInternetAvailable();
+    if (isConnected) {
       taskData['isChecked'] = taskData['isChecked'] == false ? false : true;
       List<String> keysToRemove = [
         'is_synced',
@@ -242,25 +245,29 @@ class ApiService {
       }
       GlobalState().apiInitialize = false;
     }
+
+    // }
   }
 
   Future<void> deleteTask(Map<String, dynamic> task) async {
     task['userId'] = GlobalState().userId;
-    if (GlobalState().firstInitialize && GlobalState().apiInitialize == false) {
-      // print(
-      //     "FIRST INITIALIZE dans deleteTask : ${GlobalState().firstInitialize}");
-      print("Suppression de la tâche de la base locale.");
-      task['isChecked'] = task['isChecked'] == false ? 0 : 1;
-      task['isDeleted'] = 1;
-      task.addAll({
-        'is_synced': 0,
-      });
+    // if (GlobalState().firstInitialize && GlobalState().apiInitialize == false) {
+    // print(
+    //     "FIRST INITIALIZE dans deleteTask : ${GlobalState().firstInitialize}");
+    print("Suppression de la tâche de la base locale.");
+    task['isChecked'] = task['isChecked'] == false ? 0 : 1;
+    task['isDeleted'] = 1;
+    task.addAll({
+      'is_synced': 0,
+    });
 
-      await _databaseHelper.updateTask(task);
-    } else {
-      // print(
-      //     "FIRST INITIALIZE dans deleteTask : ${GlobalState().firstInitialize}");
-      print("Suppression de la tâche via l'API distante.");
+    await _databaseHelper.updateTask(task);
+    // } else {
+    // print(
+    //     "FIRST INITIALIZE dans deleteTask : ${GlobalState().firstInitialize}");
+    print("Suppression de la tâche via l'API distante.");
+    bool isConnected = await NetworkUtils.isInternetAvailable();
+    if (isConnected) {
       final apiUrl = "$taskApiUrl/${task['id']}";
       final response = await http.delete(
         Uri.parse(apiUrl),
@@ -272,31 +279,35 @@ class ApiService {
       } else {
         print(
             "TACHE AVEC ID  : ${task['id']} SUPPRIMER AVEC SUCCESS VIA L'API'");
-        task['isNew'] = 0;
-        task['isDeleted'] = 0;
-        task['isUpdated'] = 0;
-        task.addAll({
-          'is_synced': 0,
-        });
-        await _databaseHelper.delete(task['id'], 'tasks');
+        // task['isNew'] = 0;
+        // task['isDeleted'] = 0;
+        // task['isUpdated'] = 0;
+        // task.addAll({
+        //   'is_synced': 0,
+        // });
+        // await _databaseHelper.delete(task['id'], 'tasks');
       }
     }
+
+    // }
   }
 
   Future<void> updateTask(String taskId, Map<String, dynamic> taskData) async {
     taskData['userId'] = GlobalState().userId;
     // print(taskData);
-    if (GlobalState().firstInitialize && GlobalState().apiInitialize == false) {
-      print("Mise à jour de la tâche dans la base locale.");
-      taskData['isChecked'] = taskData['isChecked'] == false ? 0 : 1;
-      taskData['isUpdated'] = 1;
-      taskData.addAll({
-        'is_synced': 0,
-      });
-      await _databaseHelper.updateTask(taskData);
-    } else {
-      print("Mise à jour de la tâche via l'API distante.");
+    // if (GlobalState().firstInitialize && GlobalState().apiInitialize == false) {
+    print("Mise à jour de la tâche dans la base locale.");
+    taskData['isChecked'] = taskData['isChecked'] == false ? 0 : 1;
+    taskData['isUpdated'] = 1;
+    taskData.addAll({
+      'is_synced': 0,
+    });
 
+    // } else {
+    print("Mise à jour de la tâche via l'API distante.");
+    await _databaseHelper.updateTask(taskData);
+    bool isConnected = await NetworkUtils.isInternetAvailable();
+    if (isConnected) {
       List<String> keysToRemove = [
         'is_synced',
         'isNew',
@@ -320,27 +331,32 @@ class ApiService {
       // print(response.statusCode);
       if (response.statusCode != 200 && response.statusCode != 204) {
         throw Exception('Failed to update task: ${response.body}');
-      } else {
-        taskData['isUpdated'] = 0;
-        taskData['isChecked'] = taskData['isChecked'] == false ? 0 : 1;
-        await _databaseHelper.updateTask(taskData);
       }
+      // else {
+      //   taskData['isUpdated'] = 0;
+      //   taskData['isChecked'] = taskData['isChecked'] == false ? 0 : 1;
+      //   await _databaseHelper.updateTask(taskData);
+      // }
     }
+
+    // }
   }
 
   Future<void> check(bool isChecked, Map<String, dynamic> taskData) async {
     taskData['userId'] = GlobalState().userId;
     // print(taskData);
-    if (GlobalState().firstInitialize && GlobalState().apiInitialize == false) {
-      print(
-          "Mise à jour de la tâche (terminer / en attente) dans la base locale.");
-      taskData['isChecked'] = isChecked == false ? 0 : 1;
-      taskData['isUpdated'] = 1;
-      taskData.addAll({
-        'is_synced': 0,
-      });
-      await _databaseHelper.updateTask(taskData);
-    } else {
+    // if (GlobalState().firstInitialize && GlobalState().apiInitialize == false) {
+    print(
+        "Mise à jour de la tâche (terminer / en attente) dans la base locale.");
+    taskData['isChecked'] = isChecked == false ? 0 : 1;
+    taskData['isUpdated'] = 1;
+    taskData.addAll({
+      'is_synced': 0,
+    });
+    await _databaseHelper.updateTask(taskData);
+    // } else { }
+    bool isConnected = await NetworkUtils.isInternetAvailable();
+    if (isConnected) {
       print(
           "Mise à jour de la tâche (terminer / en attente) via l'API distante.");
 
@@ -355,9 +371,12 @@ class ApiService {
         taskData.remove(key);
       }
       taskData['isChecked'] = isChecked == false ? false : true;
-
-      final apiUrl = "$taskApiUrl/$taskData['id']";
+      final id = taskData['id'];
+      final apiUrl = "$taskApiUrl/$id";
+      print('apiUrl');
       print(apiUrl);
+      print('apiUrl');
+      print(taskData['id']);
       final response = await http.put(
         Uri.parse(apiUrl),
         headers: {'Content-Type': 'application/json'},
@@ -370,7 +389,7 @@ class ApiService {
       } else {
         taskData['isUpdated'] = 0;
         taskData['isChecked'] = isChecked == false ? 0 : 1;
-        await _databaseHelper.updateTask(taskData);
+        // await _databaseHelper.updateTask(taskData);
       }
     }
   }

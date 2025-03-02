@@ -90,11 +90,9 @@ class _EditUserState extends State<EditUser> {
   Future<void> _loadImage() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? imagePath = prefs.getString('profileImage');
-    if (imagePath != null) {
-      setState(() {
-        _selectedImage = File(imagePath);
-      });
-    }
+    setState(() {
+      _selectedImage = File(imagePath!);
+    });
   }
 
   Future<void> _pickImage() async {

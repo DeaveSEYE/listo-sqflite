@@ -2,16 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:listo/core/cubit/categorieCubit.dart';
 import 'package:listo/core/cubit/taskCubit.dart';
+import 'package:listo/core/global/global_state.dart';
 import 'package:listo/core/theme/colors.dart';
 import 'package:listo/core/utils/task.dart';
 import 'package:listo/features/calendar/ui/calendar.dart';
 import 'package:listo/features/home/ui/home.dart';
 import 'package:listo/features/profile/ui/profile.dart';
-import 'package:listo/features/search/ui/search.dart';
 import 'package:listo/features/tasks/ui/tasklist.dart';
 import 'package:listo/partials/TaskModal.dart';
 import 'package:listo/partials/app_bar.dart';
 import 'package:listo/partials/floating_action_button.dart';
+import 'package:listo/routes.dart';
 
 class MainScaffold extends StatefulWidget {
   const MainScaffold({super.key});
@@ -22,7 +23,7 @@ class MainScaffold extends StatefulWidget {
 
 class _MainScaffoldState extends State<MainScaffold> {
   int _selectedIndex = 0;
-  List<Task> _searchTasks = [];
+  // List<Task> _searchTasks = [];
   void setCurrentIndex(int index) {
     setState(() {
       _selectedIndex = index;
@@ -31,6 +32,12 @@ class _MainScaffoldState extends State<MainScaffold> {
 
   @override
   Widget build(BuildContext context) {
+    // Vérifie si l'utilisateur est connecté
+    if (GlobalState().userId.isEmpty) {
+      Future.microtask(
+          // ignore: use_build_context_synchronously
+          () => Navigator.pushReplacementNamed(context, Routes.loginPage));
+    }
     return MultiBlocProvider(
       providers: [
         BlocProvider<TaskCubit>(create: (_) => TaskCubit()),
@@ -41,11 +48,7 @@ class _MainScaffoldState extends State<MainScaffold> {
           return Scaffold(
             backgroundColor: AppColors.background,
             appBar: CustomAppBar(
-              onSearchCallback: (filteredTasks) {
-                _searchTasks = filteredTasks;
-                // Met à jour l'index pour afficher PageSearch
-                setCurrentIndex(4); // Affiche PageSearch
-              },
+              onSearchCallback: (filteredTasks) {},
             ),
             body: BlocBuilder<TaskCubit, Data>(
               builder: (context, taskState) {
@@ -84,7 +87,7 @@ class _MainScaffoldState extends State<MainScaffold> {
                       Tasklist(tasks: tasks, categories: categories),
                       CalendarPage(tasks: tasks, categories: categories),
                       const ProfileScreen(),
-                      PageSearch(tasks: _searchTasks, categories: const []),
+                      // PageSearch(tasks: _searchTasks, categories: const []),
                     ][_selectedIndex];
                   },
                 );
@@ -107,13 +110,13 @@ class _MainScaffoldState extends State<MainScaffold> {
                 BottomNavigationBarItem(
                     icon: Icon(Icons.person), label: 'Profil'),
                 // Ajout d'un élément invisible
-                BottomNavigationBarItem(
-                  icon: SizedBox(
-                      width: 0.0,
-                      height:
-                          0.0), // Rendre l'icône invisible en fixant la taille à 0.0
-                  label: '', // Pas de label
-                ),
+                // BottomNavigationBarItem(
+                //   icon: SizedBox(
+                //       width: 0.0,
+                //       height:
+                //           0.0), // Rendre l'icône invisible en fixant la taille à 0.0
+                //   label: '', // Pas de label
+                // ),
               ],
               onTap: (index) => setCurrentIndex(index),
             ),

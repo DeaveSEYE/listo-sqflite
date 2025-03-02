@@ -3,6 +3,7 @@ import 'dart:io' show InternetAddress;
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:listo/core/api/service.dart';
+import 'package:listo/core/utils/NetworkUtils.dart';
 import 'package:listo/core/utils/categorie.dart';
 import 'package:listo/core/utils/task.dart';
 import 'package:listo/database/database_helper.dart';
@@ -36,11 +37,10 @@ class CategorieCubit extends Cubit<CatData> {
 
       // Activer le verrou
       _isFetchingCategories = true;
-
+      bool isConnected = await NetworkUtils.isInternetAvailable();
       try {
-        if (!GlobalState().categorieFirstInitialize) {
+        if (isConnected) {
           //   print("DEBUT PROCESS : RECUPERATION DES TACHES DEPUIS L'API");
-
           await _fetchCategoriesFromApi(userId);
           // print("FIN PROCESS : RECUPERATION DES TACHES DEPUIS L'API");
         } else {
@@ -103,8 +103,6 @@ class CategorieCubit extends Cubit<CatData> {
 
   Future<void> _fetchCategoriesFromLocal(String userId) async {
     emit(CatData([], isLoading: true));
-    // print(
-    //     "FIRST INITIALIZE DANS _fetchTasksFromLocal : ${GlobalState().firstInitialize}");
     try {
       // final localTasks = await _databaseHelper.fetchTasks();
       final localCategories = await _databaseHelper.fetchCategories(userId);
@@ -131,8 +129,9 @@ class CategorieCubit extends Cubit<CatData> {
   // Sync vers l'api toute les 5minutes
   void _syncLocalCategorieWithApi(userId) {
     if (userId.isNotEmpty) {
-      Timer.periodic(Duration(minutes: 1), (timer) async {
-        if (await isInternetAvailable()) {
+      Timer.periodic(Duration(minutes: 15), (timer) async {
+        bool isConnected = await NetworkUtils.isInternetAvailable();
+        if (isConnected) {
           print(
               "Internet connecté. Tentative de synchronisation des données locales...");
           GlobalState().categorieApiInitialize = true;
@@ -222,26 +221,5 @@ class CategorieCubit extends Cubit<CatData> {
     //   // print("Suppression d'une catégorie avec ID : ${model.id}");
     // }
     await _databaseHelper.delete(model.id, 'table'); // Suppression par ID
-  }
-}
-
-Future<bool> isInternetAvailable() async {
-  if (kIsWeb) {
-    try {
-      final result = Uri.parse("https://google.com").resolveUri(Uri());
-      return result.host.isNotEmpty;
-    } catch (e) {
-      print(
-          'Erreur lors de la vérification de la connexion Internet (Web) : $e');
-      return false;
-    }
-  } else {
-    try {
-      final result = await InternetAddress.lookup('google.com');
-      return result.isNotEmpty && result[0].rawAddress.isNotEmpty;
-    } catch (e) {
-      print('Erreur lors de la vérification de la connexion Internet : $e');
-      return false;
-    }
   }
 }
